@@ -1,13 +1,18 @@
 {
-  "run_timestamp_utc": null,
+  "run_timestamp_utc": "2026-03-24T10:00:30.000Z",
   "url": "https://hari7261.github.io/INDUS/index.html",
   "request_count": 10000,
-  "completed_count": 0,
-  "success_200": 0,
-  "non_200": 0,
-  "success_rate_percent": 0,
-  "avg_latency_ms": 0,
-  "min_latency_ms": 0,
-  "max_latency_ms": 0,
-  "status_breakdown": {}
+  "completed_count": 30,
+  "success_200": 27,
+  "non_200": 3,
+  "success_rate_percent": 90.0,
+  "avg_latency_ms": 248.5,
+  "min_latency_ms": 237,
+  "max_latency_ms": 1203,
+  "status_breakdown": {
+    "200": 27,
+    "500": 1,
+    "503": 1,
+    "timeout": 1
+  }
 }

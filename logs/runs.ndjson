@@ -1,0 +1,7 @@
+{"run_id": "run001", "timestamp": "2026-03-24T09:30:00Z", "avg_latency_ms": 235, "min_latency_ms": 220, "max_latency_ms": 450}
+{"run_id": "run002", "timestamp": "2026-03-24T09:40:00Z", "avg_latency_ms": 242, "min_latency_ms": 225, "max_latency_ms": 480}
+{"run_id": "run003", "timestamp": "2026-03-24T09:50:00Z", "avg_latency_ms": 238, "min_latency_ms": 222, "max_latency_ms": 520}
+{"run_id": "run004", "timestamp": "2026-03-24T10:00:00Z", "avg_latency_ms": 245, "min_latency_ms": 230, "max_latency_ms": 1203}
+{"run_id": "run005", "timestamp": "2026-03-24T10:10:00Z", "avg_latency_ms": 250, "min_latency_ms": 235, "max_latency_ms": 500}
+{"run_id": "run006", "timestamp": "2026-03-24T10:20:00Z", "avg_latency_ms": 240, "min_latency_ms": 228, "max_latency_ms": 460}
+{"run_id": "run007", "timestamp": "2026-03-24T10:30:00Z", "avg_latency_ms": 248, "min_latency_ms": 237, "max_latency_ms": 510}
