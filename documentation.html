@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>URL Ping Tool Documentation</title>
+    <style>
+      :root {
+        color-scheme: light;
+        --bg: #f3f7fc;
+        --card: #ffffff;
+        --text: #0f172a;
+        --muted: #64748b;
+        --border: #dbe3ee;
+        --accent: #2563eb;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+        color: var(--text);
+        background:
+          radial-gradient(1000px 300px at 50% -120px, #dbeafe 0%, transparent 66%),
+          var(--bg);
+      }
+
+      .container {
+        max-width: 1080px;
+        margin: 0 auto;
+        padding: 20px;
+      }
+
+      .top-nav {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 12px;
+        margin-bottom: 12px;
+      }
+
+      .nav-links {
+        display: flex;
+        gap: 8px;
+        flex-wrap: wrap;
+      }
+
+      .nav-link {
+        text-decoration: none;
+        border: 1px solid var(--border);
+        color: #1e293b;
+        background: #fff;
+        border-radius: 999px;
+        padding: 7px 12px;
+        font-size: 12px;
+        font-weight: 600;
+      }
+
+      .nav-link.active {
+        border-color: #bfdbfe;
+        background: #eff6ff;
+        color: #1d4ed8;
+      }
+
+      .hero {
+        background: var(--card);
+        border: 1px solid var(--border);
+        border-radius: 14px;
+        padding: 18px;
+        margin-bottom: 12px;
+      }
+
+      h1 {
+        margin: 0 0 8px;
+        line-height: 1.2;
+      }
+
+      p {
+        margin: 0;
+      }
+
+      .hero p {
+        color: var(--muted);
+        max-width: 80ch;
+      }
+
+      .grid {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 12px;
+      }
+
+      .panel {
+        background: var(--card);
+        border: 1px solid var(--border);
+        border-radius: 14px;
+        padding: 16px;
+      }
+
+      .panel h2 {
+        margin: 0 0 10px;
+        font-size: 18px;
+      }
+
+      .panel p {
+        color: #334155;
+        margin-bottom: 8px;
+        line-height: 1.5;
+      }
+
+      ul,
+      ol {
+        margin: 8px 0 0 18px;
+        padding: 0;
+        color: #334155;
+        line-height: 1.5;
+      }
+
+      li {
+        margin: 4px 0;
+      }
+
+      code {
+        font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+        background: #eef2ff;
+        border-radius: 4px;
+        padding: 1px 5px;
+        font-size: 12px;
+      }
+
+      .full {
+        grid-column: 1 / -1;
+      }
+
+      .status-ok {
+        color: #0f7a33;
+        font-weight: 700;
+      }
+
+      @media (max-width: 860px) {
+        .grid {
+          grid-template-columns: 1fr;
+        }
+      }
+
+      @media (max-width: 640px) {
+        .container {
+          padding: 12px;
+        }
+
+        .top-nav {
+          flex-direction: column;
+          align-items: stretch;
+        }
+
+        .nav-links {
+          justify-content: center;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <main class="container">
+      <nav class="top-nav" aria-label="Main navigation">
+        <div class="nav-links">
+          <a class="nav-link" href="index.html">Dashboard</a>
+          <a class="nav-link active" href="documentation.html">Documentation</a>
+        </div>
+      </nav>
+
+      <section class="hero">
+        <h1>URL Ping Tool Documentation</h1>
+        <p>
+          This page explains how your monitoring tool works, what every file does, how to verify that data is real,
+          and how to troubleshoot when you do not see updates.
+        </p>
+      </section>
+
+      <section class="grid">
+        <article class="panel">
+          <h2>1) What This Tool Does</h2>
+          <p>
+            The project pings one URL many times, stores request-level logs, calculates summary metrics,
+            and displays all results in a dashboard.
+          </p>
+          <ul>
+            <li>Target URL: <code>https://hari7261.github.io/INDUS/index.html</code></li>
+            <li>Requests per run: <code>10000</code></li>
+            <li>Runs: scheduled 2 times/day + manual run</li>
+          </ul>
+        </article>
+
+        <article class="panel">
+          <h2>2) Trigger and Schedule</h2>
+          <p>
+            The workflow is in <code>.github/workflows/ping-url.yml</code>.
+            It runs by cron and can be started manually from GitHub Actions.
+          </p>
+          <ul>
+            <li>Cron: <code>0 0,12 * * *</code> (00:00 and 12:00 UTC)</li>
+            <li>Manual: Actions tab -> workflow -> <code>Run workflow</code></li>
+          </ul>
+        </article>
+
+        <article class="panel">
+          <h2>3) Data Files</h2>
+          <p>Generated files used by the dashboard:</p>
+          <ul>
+            <li><code>logs/requests.log</code>: Every request line with timestamp, status, latency</li>
+            <li><code>logs/latest-summary.json</code>: Latest run metrics</li>
+            <li><code>logs/runs.ndjson</code>: History of run summaries for chart trend</li>
+          </ul>
+        </article>
+
+        <article class="panel">
+          <h2>4) Dashboard Data Flow</h2>
+          <ol>
+            <li><code>index.html</code> fetches latest summary + history + request log</li>
+            <li>Metric cards show summary values</li>
+            <li>Canvas chart shows avg/min/max latency trend</li>
+            <li>Log panel supports filter, search, sort, and pagination</li>
+            <li>Auto-refresh runs every 10 seconds</li>
+          </ol>
+        </article>
+
+        <article class="panel full">
+          <h2>5) How To Confirm It Is Working</h2>
+          <ol>
+            <li>Open GitHub Actions and check latest run is <span class="status-ok">green/success</span>.</li>
+            <li>Verify <code>logs/latest-summary.json</code> has a recent <code>run_timestamp_utc</code>.</li>
+            <li>Verify <code>logs/requests.log</code> gets new lines after a run.</li>
+            <li>Verify <code>logs/runs.ndjson</code> gets one new line per run.</li>
+            <li>Open dashboard and check cards/chart/logs change after refresh.</li>
+          </ol>
+        </article>
+
+        <article class="panel full">
+          <h2>6) Common Issues and Fixes</h2>
+          <ul>
+            <li>No data visible: confirm workflow run succeeded and logs were committed.</li>
+            <li>Stale dashboard data: hard refresh browser to bypass cache.</li>
+            <li>Logs empty: check target URL availability and Action job output.</li>
+            <li>High failures/non-200: inspect <code>status_breakdown</code> in summary JSON.</li>
+            <li>Slow page load with huge logs: use filters and lower rows-per-page.</li>
+          </ul>
+        </article>
+
+        <article class="panel full">
+          <h2>7) Tuning Settings</h2>
+          <p>
+            You can change values in workflow environment variables:
+          </p>
+          <ul>
+            <li><code>REQUEST_COUNT</code>: how many pings per run</li>
+            <li><code>CONCURRENCY</code>: parallel requests</li>
+            <li><code>REQUEST_LOG_LIMIT</code>: max request log lines retained</li>
+            <li><code>RUNS_HISTORY_LIMIT</code>: max summary history lines retained</li>
+          </ul>
+        </article>
+      </section>
+    </main>
+  </body>
+</html>

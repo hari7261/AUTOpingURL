@@ -7,7 +7,7 @@
     <style>
       :root {
         color-scheme: light;
-        --bg: #f4f6fb;
+        --bg: #eff3f8;
         --card: #ffffff;
         --text: #0f172a;
         --muted: #64748b;
@@ -15,6 +15,7 @@
         --ok: #16a34a;
         --bad: #dc2626;
         --accent: #2563eb;
+        --accent-soft: #dbeafe;
       }
 
       * {
@@ -23,48 +24,89 @@
 
       body {
         margin: 0;
-        background: var(--bg);
+        background:
+          radial-gradient(1200px 380px at 50% -90px, #dbeafe 0%, transparent 65%),
+          var(--bg);
         color: var(--text);
-        font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+        font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
       }
 
       .container {
-        max-width: 920px;
+        max-width: 1080px;
         margin: 0 auto;
-        padding: 24px;
+        padding: 20px;
+      }
+
+      .top-nav {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        margin-bottom: 12px;
+      }
+
+      .nav-links {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        flex-wrap: wrap;
+      }
+
+      .nav-link {
+        text-decoration: none;
+        border: 1px solid var(--border);
+        color: #1e293b;
+        background: #fff;
+        border-radius: 999px;
+        padding: 7px 12px;
+        font-size: 12px;
+        font-weight: 600;
+      }
+
+      .nav-link.active {
+        border-color: #bfdbfe;
+        background: #eff6ff;
+        color: #1d4ed8;
       }
 
       h1 {
-        margin-bottom: 4px;
+        margin: 0;
+        line-height: 1.2;
       }
 
       .header {
         display: flex;
         justify-content: space-between;
         align-items: flex-start;
-        gap: 12px;
-        margin-bottom: 16px;
+        gap: 14px;
+        margin-bottom: 14px;
+        flex-wrap: wrap;
       }
 
       .subtitle {
-        margin-top: 4px;
+        margin: 8px 0 0;
         color: var(--muted);
+        font-size: 14px;
       }
 
       .pill {
-        background: #dbeafe;
+        background: var(--accent-soft);
         color: #1d4ed8;
         border-radius: 999px;
         padding: 8px 12px;
         font-size: 12px;
         font-weight: 600;
+        white-space: nowrap;
+        max-width: 100%;
+        overflow: hidden;
+        text-overflow: ellipsis;
       }
 
       .grid {
         display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+        grid-template-columns: repeat(6, minmax(0, 1fr));
         gap: 12px;
-        margin-bottom: 16px;
+        margin-bottom: 14px;
       }
 
       .card {
@@ -72,28 +114,37 @@
         border: 1px solid var(--border);
         border-radius: 12px;
         padding: 14px;
+        min-width: 0;
+      }
+
+      .metric-card {
+        grid-column: span 2;
       }
 
       .card h3 {
         margin: 0;
-        font-size: 13px;
+        font-size: 12px;
         text-transform: uppercase;
         letter-spacing: 0.04em;
         color: #6b7280;
         font-weight: 600;
+        line-height: 1.3;
       }
 
-      .card p {
+      .metric-value {
         margin: 8px 0 0;
-        font-size: 26px;
+        font-size: clamp(18px, 3.2vw, 26px);
         font-weight: 700;
+        line-height: 1.15;
+        overflow-wrap: anywhere;
+        word-break: break-word;
       }
 
-      .card p.ok {
+      .metric-value.ok {
         color: var(--ok);
       }
 
-      .card p.bad {
+      .metric-value.bad {
         color: var(--bad);
       }
 
@@ -102,7 +153,7 @@
         border: 1px solid var(--border);
         border-radius: 12px;
         padding: 14px;
-        margin-bottom: 16px;
+        margin-bottom: 14px;
       }
 
       .panel h2 {
@@ -116,21 +167,23 @@
         border: 1px solid var(--border);
         border-radius: 8px;
         background: #f8fafc;
+        display: block;
       }
 
       #request-log {
         background: #fff;
         border: 1px solid #e5e7eb;
         border-radius: 10px;
-        padding: 16px;
-        min-height: 200px;
+        padding: 8px 14px;
+        min-height: 220px;
       }
 
       .log-entry {
         font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
         border-bottom: 1px solid #f1f5f9;
-        padding: 8px 0;
-        font-size: 13px;
+        padding: 10px 0;
+        font-size: 12px;
+        overflow-wrap: anywhere;
       }
 
       .log-entry:last-child {
@@ -148,10 +201,155 @@
       .muted {
         color: var(--muted);
       }
+
+      .logs-toolbar {
+        display: grid;
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        gap: 10px;
+        margin-bottom: 12px;
+      }
+
+      .control {
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+        min-width: 0;
+      }
+
+      .control label {
+        color: var(--muted);
+        font-size: 12px;
+        font-weight: 600;
+      }
+
+      .control input,
+      .control select {
+        width: 100%;
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        background: #fff;
+        color: var(--text);
+        padding: 8px 10px;
+        font-size: 13px;
+      }
+
+      .logs-meta {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 12px;
+        margin: 8px 0 10px;
+        color: var(--muted);
+        font-size: 12px;
+      }
+
+      .pagination {
+        display: flex;
+        align-items: center;
+        justify-content: flex-end;
+        gap: 8px;
+        margin-top: 12px;
+        flex-wrap: wrap;
+      }
+
+      .pagination button {
+        border: 1px solid var(--border);
+        background: #fff;
+        color: var(--text);
+        border-radius: 8px;
+        padding: 8px 10px;
+        font-size: 12px;
+        font-weight: 600;
+        cursor: pointer;
+      }
+
+      .pagination button:hover:not(:disabled) {
+        border-color: #bfdbfe;
+        background: #eff6ff;
+      }
+
+      .pagination button:disabled {
+        cursor: not-allowed;
+        opacity: 0.45;
+      }
+
+      #page-label {
+        color: var(--muted);
+        font-size: 12px;
+        font-weight: 600;
+        min-width: 96px;
+        text-align: center;
+      }
+
+      @media (max-width: 980px) {
+        .container {
+          padding: 16px;
+        }
+
+        .grid {
+          grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+
+        .metric-card {
+          grid-column: span 1;
+        }
+
+        .logs-toolbar {
+          grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+      }
+
+      @media (max-width: 640px) {
+        .container {
+          padding: 12px;
+        }
+
+        .top-nav {
+          flex-direction: column;
+          align-items: stretch;
+        }
+
+        .nav-links {
+          justify-content: center;
+        }
+
+        .header {
+          align-items: stretch;
+        }
+
+        .grid {
+          grid-template-columns: 1fr;
+        }
+
+        .logs-toolbar {
+          grid-template-columns: 1fr;
+        }
+
+        .panel,
+        .card {
+          padding: 12px;
+        }
+
+        .pill {
+          width: 100%;
+          text-align: center;
+        }
+
+        .pagination {
+          justify-content: center;
+        }
+      }
     </style>
   </head>
   <body>
     <main class="container">
+      <nav class="top-nav" aria-label="Main navigation">
+        <div class="nav-links">
+          <a class="nav-link active" href="index.html">Dashboard</a>
+          <a class="nav-link" href="documentation.html">Documentation</a>
+        </div>
+      </nav>
+
       <header class="header">
         <div>
           <h1>URL Ping Dashboard v2</h1>
@@ -161,12 +359,12 @@
       </header>
 
       <section class="grid">
-        <article class="card"><h3>Run Timestamp (UTC)</h3><p id="run-time">-</p></article>
-        <article class="card"><h3>Completed</h3><p id="completed">-</p></article>
-        <article class="card"><h3>Success 200</h3><p id="ok-count" class="ok">-</p></article>
-        <article class="card"><h3>Non-200</h3><p id="bad-count" class="bad">-</p></article>
-        <article class="card"><h3>Avg Latency (ms)</h3><p id="avg-latency">-</p></article>
-        <article class="card"><h3>Success Rate</h3><p id="success-rate">-</p></article>
+        <article class="card metric-card"><h3>Run Timestamp (UTC)</h3><p id="run-time" class="metric-value">-</p></article>
+        <article class="card metric-card"><h3>Completed</h3><p id="completed" class="metric-value">-</p></article>
+        <article class="card metric-card"><h3>Success 200</h3><p id="ok-count" class="metric-value ok">-</p></article>
+        <article class="card metric-card"><h3>Non-200</h3><p id="bad-count" class="metric-value bad">-</p></article>
+        <article class="card metric-card"><h3>Avg Latency (ms)</h3><p id="avg-latency" class="metric-value">-</p></article>
+        <article class="card metric-card"><h3>Success Rate</h3><p id="success-rate" class="metric-value">-</p></article>
       </section>
 
       <section class="panel">
@@ -176,8 +374,54 @@
       </section>
 
       <section class="panel">
-        <h2>Recent Request Logs (latest 30 lines)</h2>
+        <h2>Request Logs</h2>
+        <div class="logs-toolbar">
+          <div class="control">
+            <label for="status-filter">Status filter</label>
+            <select id="status-filter">
+              <option value="all">All</option>
+              <option value="200">Only HTTP 200</option>
+              <option value="non200">Only Non-200</option>
+            </select>
+          </div>
+
+          <div class="control">
+            <label for="search-filter">Search text</label>
+            <input id="search-filter" type="text" placeholder="Search by status, URL, or keyword" />
+          </div>
+
+          <div class="control">
+            <label for="page-size">Rows per page</label>
+            <select id="page-size">
+              <option value="10">10</option>
+              <option value="20" selected>20</option>
+              <option value="30">30</option>
+              <option value="50">50</option>
+            </select>
+          </div>
+
+          <div class="control">
+            <label for="sort-order">Order</label>
+            <select id="sort-order">
+              <option value="newest" selected>Newest first</option>
+              <option value="oldest">Oldest first</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="logs-meta">
+          <span id="results-count">Showing 0 of 0 entries</span>
+        </div>
+
         <div id="request-log"><p class="muted">Loading...</p></div>
+
+        <div class="pagination">
+          <button id="first-page" type="button">First</button>
+          <button id="prev-page" type="button">Prev</button>
+          <span id="page-label">Page 1 of 1</span>
+          <button id="next-page" type="button">Next</button>
+          <button id="last-page" type="button">Last</button>
+        </div>
       </section>
     </main>
 
@@ -185,6 +429,16 @@
       const SUMMARY_URL = "logs/latest-summary.json";
       const HISTORY_URL = "logs/runs.ndjson";
       const LOG_URL = "logs/requests.log";
+
+      const state = {
+        allLogs: [],
+        filteredLogs: [],
+        currentPage: 1,
+        pageSize: 20,
+        statusFilter: "all",
+        searchTerm: "",
+        order: "newest",
+      };
 
       function setText(id, value) {
         document.getElementById(id).textContent = value;
@@ -269,21 +523,124 @@
       }
 
       async function fetchRecentLogs() {
-        const logContainer = document.getElementById("request-log");
-        
         const response = await fetch(LOG_URL, { cache: "no-store" });
         if (!response.ok) {
-          logContainer.innerHTML = '<p class="muted">No logs found yet.</p>';
           return [];
         }
-        
+
         const text = await response.text();
         return text
           .split("\n")
           .map((line) => line.trim())
-          .filter(Boolean)
-          .slice(-30)
-          .reverse();
+          .filter(Boolean);
+      }
+
+      function applyLogFilters() {
+        let rows = [...state.allLogs];
+
+        if (state.statusFilter === "200") {
+          rows = rows.filter((line) => line.includes("Status: 200"));
+        }
+
+        if (state.statusFilter === "non200") {
+          rows = rows.filter((line) => !line.includes("Status: 200"));
+        }
+
+        if (state.searchTerm) {
+          const q = state.searchTerm.toLowerCase();
+          rows = rows.filter((line) => line.toLowerCase().includes(q));
+        }
+
+        if (state.order === "newest") {
+          rows = rows.reverse();
+        }
+
+        state.filteredLogs = rows;
+      }
+
+      function renderLogList() {
+        const logContainer = document.getElementById("request-log");
+        const resultsCount = document.getElementById("results-count");
+        const pageLabel = document.getElementById("page-label");
+        const firstBtn = document.getElementById("first-page");
+        const prevBtn = document.getElementById("prev-page");
+        const nextBtn = document.getElementById("next-page");
+        const lastBtn = document.getElementById("last-page");
+
+        const total = state.filteredLogs.length;
+        const pages = Math.max(1, Math.ceil(total / state.pageSize));
+        state.currentPage = Math.min(state.currentPage, pages);
+        state.currentPage = Math.max(1, state.currentPage);
+
+        const start = (state.currentPage - 1) * state.pageSize;
+        const end = start + state.pageSize;
+        const visible = state.filteredLogs.slice(start, end);
+
+        resultsCount.textContent = `Showing ${visible.length} of ${total} entries`;
+        pageLabel.textContent = `Page ${state.currentPage} of ${pages}`;
+
+        firstBtn.disabled = state.currentPage === 1;
+        prevBtn.disabled = state.currentPage === 1;
+        nextBtn.disabled = state.currentPage >= pages;
+        lastBtn.disabled = state.currentPage >= pages;
+
+        if (!visible.length) {
+          logContainer.innerHTML = '<p class="muted">No logs match your filters.</p>';
+          return;
+        }
+
+        logContainer.innerHTML = "";
+        visible.forEach((line) => {
+          const row = document.createElement("div");
+          row.className = "log-entry";
+          row.classList.add(line.includes("Status: 200") ? "ok" : "bad");
+          row.textContent = line;
+          logContainer.appendChild(row);
+        });
+      }
+
+      function syncFiltersFromUI() {
+        state.statusFilter = document.getElementById("status-filter").value;
+        state.searchTerm = document.getElementById("search-filter").value.trim();
+        state.pageSize = Number(document.getElementById("page-size").value) || 20;
+        state.order = document.getElementById("sort-order").value;
+      }
+
+      function rerenderLogs(resetPage) {
+        syncFiltersFromUI();
+        if (resetPage) {
+          state.currentPage = 1;
+        }
+        applyLogFilters();
+        renderLogList();
+      }
+
+      function registerLogControls() {
+        document.getElementById("status-filter").addEventListener("change", () => rerenderLogs(true));
+        document.getElementById("search-filter").addEventListener("input", () => rerenderLogs(true));
+        document.getElementById("page-size").addEventListener("change", () => rerenderLogs(true));
+        document.getElementById("sort-order").addEventListener("change", () => rerenderLogs(true));
+
+        document.getElementById("first-page").addEventListener("click", () => {
+          state.currentPage = 1;
+          renderLogList();
+        });
+
+        document.getElementById("prev-page").addEventListener("click", () => {
+          state.currentPage -= 1;
+          renderLogList();
+        });
+
+        document.getElementById("next-page").addEventListener("click", () => {
+          state.currentPage += 1;
+          renderLogList();
+        });
+
+        document.getElementById("last-page").addEventListener("click", () => {
+          const pages = Math.max(1, Math.ceil(state.filteredLogs.length / state.pageSize));
+          state.currentPage = pages;
+          renderLogList();
+        });
       }
 
       async function refreshDashboard() {
@@ -306,24 +663,15 @@
 
           drawLatencyChart(runs);
 
-          if (!recentLogs.length) {
-            logContainer.innerHTML = '<p class="muted">No logs found yet.</p>';
-          } else {
-            logContainer.innerHTML = "";
-            recentLogs.forEach((line) => {
-              const row = document.createElement("div");
-              row.className = "log-entry";
-              row.classList.add(line.includes("Status: 200") ? "ok" : "bad");
-              row.textContent = line;
-              logContainer.appendChild(row);
-            });
-          }
+          state.allLogs = recentLogs;
+          rerenderLogs(false);
         } catch (error) {
           console.error("Dashboard refresh error:", error);
           logContainer.innerHTML = `<p class="muted">Error loading logs: ${error.message}</p>`;
         }
       }
 
+      registerLogControls();
       refreshDashboard();
       setInterval(refreshDashboard, 10_000);
     </script>
