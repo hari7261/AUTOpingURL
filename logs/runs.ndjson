@@ -6,3 +6,4 @@
 {"run_id": "run006", "timestamp": "2026-03-24T10:20:00Z", "avg_latency_ms": 240, "min_latency_ms": 228, "max_latency_ms": 460}
 {"run_id": "run007", "timestamp": "2026-03-24T10:30:00Z", "avg_latency_ms": 248, "min_latency_ms": 237, "max_latency_ms": 510}
 {"run_timestamp_utc":"2026-03-24T06:40:06Z","url":"https://hari7261.github.io/INDUS/index.html","request_count":10000,"completed_count":10000,"success_200":10000,"non_200":0,"success_rate_percent":100.0,"avg_latency_ms":1244.72,"min_latency_ms":177,"max_latency_ms":2486,"status_breakdown":{"200":10000}}
+{"run_timestamp_utc":"2026-03-24T12:43:53Z","url":"https://hari7261.github.io/INDUS/index.html","request_count":10000,"completed_count":10000,"success_200":10000,"non_200":0,"success_rate_percent":100.0,"avg_latency_ms":1199.42,"min_latency_ms":263,"max_latency_ms":1868,"status_breakdown":{"200":10000}}
