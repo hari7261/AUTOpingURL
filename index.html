@@ -3,6 +3,23 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>URL Ping Dashboard v2</title>
+    <style>
+      :root {
+        color-scheme: light;
+        --bg: #f4f6fb;
+        --card: #ffffff;
+        --text: #0f172a;
+        --muted: #64748b;
+        --border: #e2e8f0;
+        --ok: #16a34a;
+        --bad: #dc2626;
+        --accent: #2563eb;
+      }
+
+      * {
+        box-sizing: border-box;
+
     <title>URL Ping Dashboard</title>
     <style>
       :root {
@@ -11,6 +28,13 @@
 
       body {
         margin: 0;
+        background: var(--bg);
+        color: var(--text);
+        font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+      }
+
+      .container {
+        max-width: 1080px;
         font-family: Arial, sans-serif;
         background: #f7f8fb;
         color: #1f2937;
@@ -22,6 +46,40 @@
         padding: 24px;
       }
 
+      .header {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        gap: 12px;
+        margin-bottom: 16px;
+      }
+
+      .subtitle {
+        margin-top: 4px;
+        color: var(--muted);
+      }
+
+      .pill {
+        background: #dbeafe;
+        color: #1d4ed8;
+        border-radius: 999px;
+        padding: 8px 12px;
+        font-size: 12px;
+        font-weight: 600;
+      }
+
+      .grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+        gap: 12px;
+        margin-bottom: 16px;
+      }
+
+      .card {
+        background: var(--card);
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        padding: 14px;
       h1 {
         margin-bottom: 4px;
       }
@@ -47,6 +105,10 @@
 
       .card h3 {
         margin: 0;
+        font-size: 12px;
+        text-transform: uppercase;
+        letter-spacing: 0.04em;
+        color: var(--muted);
         font-size: 13px;
         color: #6b7280;
         font-weight: 600;
@@ -54,6 +116,45 @@
 
       .card p {
         margin: 8px 0 0;
+        font-size: 26px;
+        font-weight: 700;
+      }
+
+      .ok {
+        color: var(--ok);
+      }
+
+      .bad {
+        color: var(--bad);
+      }
+
+      .panel {
+        background: var(--card);
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        padding: 14px;
+        margin-bottom: 16px;
+      }
+
+      .panel h2 {
+        margin: 0 0 12px;
+        font-size: 16px;
+      }
+
+      #chart {
+        width: 100%;
+        height: auto;
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        background: #f8fafc;
+      }
+
+      .log-entry {
+        padding: 8px 0;
+        border-bottom: 1px solid #f1f5f9;
+        font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+        font-size: 12px;
+        word-break: break-word;
         font-size: 22px;
         font-weight: 700;
       }
@@ -77,6 +178,8 @@
         border-bottom: none;
       }
 
+      .muted {
+        color: var(--muted);
       .ok {
         color: #15803d;
       }
@@ -88,7 +191,34 @@
   </head>
   <body>
     <main class="container">
-      <h1>URL Ping Dashboard</h1>
+      <header class="header">
+        <div>
+          <h1>URL Ping Dashboard v2</h1>
+          <p class="subtitle">10,000 requests/run • updates every 10 seconds</p>
+        </div>
+        <div class="pill" id="last-updated">Last updated: -</div>
+      </header>
+
+      <section class="grid">
+        <article class="card"><h3>Run Timestamp (UTC)</h3><p id="run-time">-</p></article>
+        <article class="card"><h3>Completed</h3><p id="completed">-</p></article>
+        <article class="card"><h3>Success 200</h3><p id="ok-count" class="ok">-</p></article>
+        <article class="card"><h3>Non-200</h3><p id="bad-count" class="bad">-</p></article>
+        <article class="card"><h3>Avg Latency (ms)</h3><p id="avg-latency">-</p></article>
+        <article class="card"><h3>Success Rate</h3><p id="success-rate">-</p></article>
+      </section>
+
+      <section class="panel">
+        <h2>Latency Trend (last 30 runs)</h2>
+        <canvas id="chart" width="980" height="300"></canvas>
+        <p class="muted">Blue: Avg latency • Green: Min latency • Red: Max latency</p>
+      </section>
+
+      <section class="panel">
+        <h2>Recent Request Logs (latest 30 lines)</h2>
+        <div id="request-log"><p class="muted">Loading...</p></div>
+        
+        <h1>URL Ping Dashboard</h1>
       <p class="meta">Auto-refreshes every 10 seconds and shows latest request activity.</p>
 
       <section class="stats">
@@ -112,6 +242,143 @@
     </main>
 
     <script>
+      const SUMMARY_URL = "logs/latest-summary.json";
+      const HISTORY_URL = "logs/runs.ndjson";
+      const LOG_URL = "logs/requests.log";
+
+      function setText(id, value) {
+        document.getElementById(id).textContent = value;
+      }
+
+      function drawLatencyChart(runs) {
+        const canvas = document.getElementById("chart");
+        const ctx = canvas.getContext("2d");
+        const width = canvas.width;
+        const height = canvas.height;
+        ctx.clearRect(0, 0, width, height);
+
+        if (!runs.length) {
+          ctx.fillStyle = "#64748b";
+          ctx.font = "14px sans-serif";
+          ctx.fillText("No run history yet.", 20, 30);
+          return;
+        }
+
+        const data = runs.slice(-30);
+        const avg = data.map((r) => Number(r.avg_latency_ms || 0));
+        const min = data.map((r) => Number(r.min_latency_ms || 0));
+        const max = data.map((r) => Number(r.max_latency_ms || 0));
+        const all = [...avg, ...min, ...max];
+        const yMax = Math.max(...all, 1);
+
+        const pad = 30;
+        const plotW = width - pad * 2;
+        const plotH = height - pad * 2;
+
+        ctx.strokeStyle = "#cbd5e1";
+        ctx.strokeRect(pad, pad, plotW, plotH);
+
+        const toX = (i, n) => pad + (n <= 1 ? 0 : (i * plotW) / (n - 1));
+        const toY = (v) => pad + plotH - (v / yMax) * plotH;
+
+        function line(values, color) {
+          ctx.beginPath();
+          ctx.strokeStyle = color;
+          ctx.lineWidth = 2;
+          values.forEach((v, i) => {
+            const x = toX(i, values.length);
+            const y = toY(v);
+            if (i === 0) ctx.moveTo(x, y);
+            else ctx.lineTo(x, y);
+          });
+          ctx.stroke();
+        }
+
+        line(avg, "#2563eb");
+        line(min, "#16a34a");
+        line(max, "#dc2626");
+
+        ctx.fillStyle = "#64748b";
+        ctx.font = "12px sans-serif";
+        ctx.fillText(`0 ms`, 4, height - 6);
+        ctx.fillText(`${Math.round(yMax)} ms`, 4, 16);
+      }
+
+      async function fetchSummary() {
+        const response = await fetch(SUMMARY_URL, { cache: "no-store" });
+        if (!response.ok) throw new Error(`Summary fetch failed: ${response.status}`);
+        return response.json();
+      }
+
+      async function fetchRunsHistory() {
+        const response = await fetch(HISTORY_URL, { cache: "no-store" });
+        if (!response.ok) return [];
+        const text = await response.text();
+        return text
+          .split("\n")
+          .map((line) => line.trim())
+          .filter(Boolean)
+          .map((line) => {
+            try {
+              return JSON.parse(line);
+            } catch {
+              return null;
+            }
+          })
+          .filter(Boolean);
+      }
+
+      async function fetchRecentLogs() {
+        const response = await fetch(LOG_URL, { cache: "no-store" });
+        if (!response.ok) throw new Error(`Log fetch failed: ${response.status}`);
+        const text = await response.text();
+        return text
+          .split("\n")
+          .map((line) => line.trim())
+          .filter(Boolean)
+          .slice(-30)
+          .reverse();
+      }
+
+      async function refreshDashboard() {
+        const logContainer = document.getElementById("request-log");
+
+        try {
+          const [summary, runs, recentLogs] = await Promise.all([
+            fetchSummary(),
+            fetchRunsHistory(),
+            fetchRecentLogs(),
+          ]);
+
+          setText("run-time", summary.run_timestamp_utc || "-");
+          setText("completed", String(summary.completed_count ?? "-"));
+          setText("ok-count", String(summary.success_200 ?? "-"));
+          setText("bad-count", String(summary.non_200 ?? "-"));
+          setText("avg-latency", String(summary.avg_latency_ms ?? "-"));
+          setText("success-rate", `${summary.success_rate_percent ?? "-"}%`);
+          setText("last-updated", `Last updated: ${new Date().toISOString()}`);
+
+          drawLatencyChart(runs);
+
+          if (!recentLogs.length) {
+            logContainer.innerHTML = '<p class="muted">No logs found yet.</p>';
+          } else {
+            logContainer.innerHTML = "";
+            recentLogs.forEach((line) => {
+              const row = document.createElement("div");
+              row.className = "log-entry";
+              row.classList.add(line.includes("Status: 200") ? "ok" : "bad");
+              row.textContent = line;
+              logContainer.appendChild(row);
+            });
+          }
+        } catch (error) {
+          logContainer.innerHTML = `<p class="bad">${error.message}</p>`;
+        }
+      }
+
+      refreshDashboard();
+      setInterval(refreshDashboard, 10_000);
       const LOG_URL = "logs/requests.log";
 
       async function fetchLogs() {
