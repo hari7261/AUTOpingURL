@@ -420,6 +420,13 @@
               <option value="60d">Last 2 months</option>
               <option value="180d">Last 6 months</option>
               <option value="365d">Last 1 year</option>
+          <p class="muted">Showing latency distribution over time.</p>
+          <div class="control" style="max-width: 190px; width: 100%;">
+            <label for="chart-range">Filter range</label>
+            <select id="chart-range">
+              <option value="30" selected>Last 30 runs</option>
+              <option value="15">Last 15 runs</option>
+              <option value="7">Last 7 runs</option>
             </select>
           </div>
         </div>
@@ -561,6 +568,37 @@
           .map((d, i) => `${i === 0 ? "M" : "L"}${x(i)},${y(d.avg)}`)
           .join(" ") + ` L ${x(data.length - 1)},${y(0)} L ${x(0)},${y(0)} Z`;
 
+        const range = Number(document.getElementById("chart-range").value) || 30;
+        const data = runs
+          .slice(-range)
+          .map((run, index) => ({
+            index,
+            ts: run.timestamp || run.run_timestamp_utc || run.run_id || `Run ${index + 1}`,
+            avg: Number(run.avg_latency_ms || 0),
+            max: Number(run.max_latency_ms || 0),
+          }))
+          .filter((run) => Number.isFinite(run.avg) && Number.isFinite(run.max));
+
+        const width = 980;
+        const height = 280;
+        const pad = { top: 16, right: 14, bottom: 36, left: 46 };
+        const innerW = width - pad.left - pad.right;
+        const innerH = height - pad.top - pad.bottom;
+
+        if (!data.length) {
+          svg.innerHTML = `<text x="28" y="36" fill="#64748b" font-size="14">No run history yet.</text>`;
+          tooltip.style.display = "none";
+          return;
+        }
+
+        const yMax = Math.max(...data.map((d) => d.max), 1) * 1.08;
+        const x = (i) => pad.left + (data.length <= 1 ? innerW / 2 : (i * innerW) / (data.length - 1));
+        const y = (v) => pad.top + innerH - (Math.min(v, yMax) / yMax) * innerH;
+
+        const areaPath = data
+          .map((d, i) => `${i === 0 ? "M" : "L"}${x(i)},${y(d.avg)}`)
+          .join(" ") + ` L ${x(data.length - 1)},${y(0)} L ${x(0)},${y(0)} Z`;
+
         const linePath = data.map((d, i) => `${i === 0 ? "M" : "L"}${x(i)},${y(d.avg)}`).join(" ");
         const maxPath = data.map((d, i) => `${i === 0 ? "M" : "L"}${x(i)},${y(d.max)}`).join(" ");
 
@@ -577,9 +615,13 @@
         const xTicks = [0, Math.floor((data.length - 1) / 2), data.length - 1]
           .filter((v, idx, arr) => arr.indexOf(v) === idx)
           .map((i) => {
+
             const label = data[i].tsDate
               ? data[i].tsDate.toLocaleDateString("en-US", { month: "short", day: "numeric" })
               : String(data[i].ts).replace("T", " ").slice(5, 16);
+
+            const label = String(data[i].ts).replace("T", " ").slice(5, 16);
+
             return `<text x="${x(i)}" y="${height - 10}" fill="#64748b" font-size="11" text-anchor="middle">${label}</text>`;
           })
           .join("");
@@ -623,6 +665,7 @@
             ? point.tsDate.toLocaleString("en-US", { month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" })
             : String(point.ts).replace("T", " ").slice(0, 16);
           tooltip.innerHTML = `<strong>${pointLabel}</strong><br>Avg: ${point.avg.toFixed(0)} ms<br>Max: ${point.max.toFixed(0)} ms`;
+          tooltip.innerHTML = `<strong>${String(point.ts).replace("T", " ").slice(0, 16)}</strong><br>Avg: ${point.avg.toFixed(0)} ms<br>Max: ${point.max.toFixed(0)} ms`;
         };
       }
 
