@@ -1,14 +1,14 @@
 {
-  "run_timestamp_utc": "2026-03-25T12:41:27Z",
+  "run_timestamp_utc": "2026-03-26T01:11:06Z",
   "url": "https://hari7261.github.io/INDUS/index.html",
   "request_count": 10000,
   "completed_count": 10000,
   "success_200": 10000,
   "non_200": 0,
   "success_rate_percent": 100.0,
-  "avg_latency_ms": 1314.42,
-  "min_latency_ms": 298,
-  "max_latency_ms": 2048,
+  "avg_latency_ms": 1224.65,
+  "min_latency_ms": 183,
+  "max_latency_ms": 1876,
   "status_breakdown": {
     "200": 10000
   }
