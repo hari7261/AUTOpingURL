@@ -567,7 +567,7 @@
     </div>
 
     <div class="refresh-info">
-      <strong id="refresh-status">Auto-refresh enabled</strong>
+      <strong id="refresh-status">Realtime data active</strong>
       <span id="last-updated">Last updated: —</span>
     </div>
 
@@ -790,17 +790,7 @@
         </h2>
 
         <p class="panel-subtitle">
-          Average and maximum latency
-        </p>
-      </div>
-
-    </div>
-
-
-    <div class="chart-container">
-
-      <svg
-        id="latency-chart"
+            Average and maximum latency (realtime)
         viewBox="0 0 1000 280"
         preserveAspectRatio="none"
       ></svg>
@@ -893,7 +883,7 @@
 
 
   <footer class="footer">
-    Monitoring runs every 2 minutes · Dashboard refreshes every 10 seconds
+    Realtime dashboard updates every 10 seconds · Live data from the latest checks
   </footer>
 
 </main>
@@ -1600,12 +1590,15 @@ Avg: ${run.avg_latency_ms ?? 0} ms`;
 
       renderChart(runs);
 
-      renderChecks(logs, summary);
-
+      const now = new Date();
 
       document.getElementById("last-updated")
         .textContent =
-          `Last updated: ${new Date().toLocaleTimeString()}`;
+          `Last updated: ${now.toLocaleTimeString()}`;
+
+      document.getElementById("refresh-status")
+        .textContent =
+          `Realtime data updated at ${now.toLocaleTimeString()}`;
 
 
     } catch (error) {
@@ -1620,6 +1613,10 @@ Avg: ${run.avg_latency_ms ?? 0} ms`;
         .textContent =
           "Unable to load monitoring data";
 
+
+      document.getElementById("refresh-status")
+        .textContent =
+          "Realtime update failed";
 
       document.getElementById("status-badge")
         .textContent =
