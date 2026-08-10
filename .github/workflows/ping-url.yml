@@ -21,8 +21,8 @@ jobs:
 
     env:
       URL: "https://server-sarvadrik.onrender.com/"
-      REQUEST_COUNT: "10000"
-      CONCURRENCY: "50"
+      REQUEST_COUNT: "500"
+      CONCURRENCY: "20"
       REQUEST_LOG_LIMIT: "200000"
       RUNS_HISTORY_LIMIT: "180"
 
@@ -51,6 +51,9 @@ jobs:
               -w "%{http_code} %{time_total}" \
               --connect-timeout 5 \
               --max-time 20 \
+              --retry 2 \
+              --retry-delay 2 \
+              --retry-connrefused \
               "$URL" || echo "000 0")"
 
             status="${result%% *}"
@@ -62,7 +65,7 @@ jobs:
             printf "%s|%s|%s|%s\n" \
               "$ts" "$i" "$status" "$latency_ms" \
               >> "$TMP_RESULTS"
-          ' _ {}
+          ' _ {} || true
 
           sort -t '|' -k2,2n "$TMP_RESULTS" > "$TMP_SORTED"
 
