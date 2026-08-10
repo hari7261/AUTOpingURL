@@ -1,890 +1,1684 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>URL Ping Dashboard v2</title>
-    <style>
-      :root {
-        color-scheme: light;
-        --bg: #eff3f8;
-        --card: #ffffff;
-        --text: #0f172a;
-        --muted: #64748b;
-        --border: #e2e8f0;
-        --ok: #16a34a;
-        --bad: #dc2626;
-        --accent: #2563eb;
-        --accent-soft: #dbeafe;
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <title>Server Monitor</title>
+
+  <style>
+    :root {
+      --bg: #f5f7fa;
+      --card: #ffffff;
+      --text: #172b4d;
+      --muted: #6b778c;
+      --border: #dfe1e6;
+
+      --green: #22c55e;
+      --green-dark: #15803d;
+      --green-bg: #dcfce7;
+
+      --red: #ef4444;
+      --red-dark: #b91c1c;
+      --red-bg: #fee2e2;
+
+      --blue: #2563eb;
+      --blue-bg: #eff6ff;
+
+      --orange: #f59e0b;
+
+      --shadow:
+        0 1px 3px rgba(9, 30, 66, 0.08),
+        0 4px 12px rgba(9, 30, 66, 0.05);
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--text);
+      font-family:
+        -apple-system,
+        BlinkMacSystemFont,
+        "Segoe UI",
+        Roboto,
+        Helvetica,
+        Arial,
+        sans-serif;
+    }
+
+    a {
+      color: inherit;
+    }
+
+    .container {
+      width: min(1180px, calc(100% - 32px));
+      margin: 0 auto;
+      padding: 24px 0 50px;
+    }
+
+    /* ---------------- HEADER ---------------- */
+
+    .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 20px;
+      margin-bottom: 24px;
+    }
+
+    .brand {
+      display: flex;
+      gap: 12px;
+      align-items: center;
+    }
+
+    .brand-icon {
+      width: 42px;
+      height: 42px;
+      border-radius: 10px;
+      background: #172b4d;
+      color: white;
+
+      display: flex;
+      align-items: center;
+      justify-content: center;
+
+      font-size: 20px;
+      font-weight: 800;
+    }
+
+    .brand h1 {
+      margin: 0;
+      font-size: 21px;
+      line-height: 1.2;
+    }
+
+    .brand p {
+      margin: 4px 0 0;
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .refresh-info {
+      text-align: right;
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .refresh-info strong {
+      display: block;
+      color: var(--text);
+      font-size: 13px;
+      margin-bottom: 3px;
+    }
+
+    /* ---------------- STATUS ---------------- */
+
+    .status-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      box-shadow: var(--shadow);
+
+      padding: 20px;
+
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+
+      gap: 20px;
+      margin-bottom: 16px;
+    }
+
+    .status-left {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      min-width: 0;
+    }
+
+    .status-dot {
+      width: 14px;
+      height: 14px;
+      min-width: 14px;
+      border-radius: 50%;
+      background: var(--green);
+      box-shadow: 0 0 0 5px var(--green-bg);
+    }
+
+    .status-dot.down {
+      background: var(--red);
+      box-shadow: 0 0 0 5px var(--red-bg);
+    }
+
+    .status-title {
+      margin: 0;
+      font-size: 19px;
+      font-weight: 700;
+    }
+
+    .status-url {
+      margin-top: 5px;
+      color: var(--muted);
+      font-size: 13px;
+
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      max-width: 650px;
+    }
+
+    .status-badge {
+      padding: 7px 13px;
+      border-radius: 999px;
+
+      background: var(--green-bg);
+      color: var(--green-dark);
+
+      font-size: 12px;
+      font-weight: 700;
+      white-space: nowrap;
+    }
+
+    .status-badge.down {
+      background: var(--red-bg);
+      color: var(--red-dark);
+    }
+
+    /* ---------------- METRICS ---------------- */
+
+    .metrics {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 14px;
+      margin-bottom: 16px;
+    }
+
+    .metric {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 17px;
+      box-shadow: var(--shadow);
+    }
+
+    .metric-label {
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 600;
+      margin-bottom: 8px;
+    }
+
+    .metric-value {
+      font-size: 24px;
+      font-weight: 750;
+      letter-spacing: -0.5px;
+    }
+
+    .metric-sub {
+      margin-top: 5px;
+      color: var(--muted);
+      font-size: 11px;
+    }
+
+    .success {
+      color: var(--green-dark);
+    }
+
+    .danger {
+      color: var(--red-dark);
+    }
+
+    /* ---------------- PANEL ---------------- */
+
+    .panel {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      box-shadow: var(--shadow);
+      margin-bottom: 16px;
+      overflow: hidden;
+    }
+
+    .panel-header {
+      padding: 17px 18px;
+      border-bottom: 1px solid var(--border);
+
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 15px;
+    }
+
+    .panel-title {
+      margin: 0;
+      font-size: 15px;
+      font-weight: 700;
+    }
+
+    .panel-subtitle {
+      margin: 4px 0 0;
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .range-buttons {
+      display: flex;
+      gap: 5px;
+      flex-wrap: wrap;
+    }
+
+    .range-btn {
+      border: 1px solid var(--border);
+      background: white;
+      color: var(--muted);
+
+      padding: 6px 10px;
+      border-radius: 7px;
+
+      cursor: pointer;
+      font-size: 11px;
+      font-weight: 600;
+    }
+
+    .range-btn:hover {
+      border-color: #b8c2d1;
+    }
+
+    .range-btn.active {
+      background: var(--blue-bg);
+      color: var(--blue);
+      border-color: #bfdbfe;
+    }
+
+    /* ---------------- UPTIME BARS ---------------- */
+
+    .uptime-content {
+      padding: 18px;
+    }
+
+    .uptime-summary {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 12px;
+    }
+
+    .uptime-percent {
+      font-size: 28px;
+      font-weight: 750;
+    }
+
+    .uptime-label {
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .uptime-bars {
+      display: flex;
+      height: 42px;
+      gap: 2px;
+      overflow: hidden;
+    }
+
+    .uptime-bar {
+      flex: 1;
+      min-width: 2px;
+      border-radius: 2px;
+      background: #22c55e;
+      cursor: pointer;
+      transition: transform 0.1s ease;
+    }
+
+    .uptime-bar:hover {
+      transform: scaleY(1.15);
+    }
+
+    .uptime-bar.down {
+      background: var(--red);
+    }
+
+    .uptime-bar.empty {
+      background: #e5e7eb;
+    }
+
+    .uptime-legend {
+      display: flex;
+      justify-content: space-between;
+      margin-top: 10px;
+      color: var(--muted);
+      font-size: 11px;
+    }
+
+    /* ---------------- CHART ---------------- */
+
+    .chart-container {
+      padding: 18px;
+    }
+
+    #latency-chart {
+      width: 100%;
+      height: 280px;
+      display: block;
+    }
+
+    .chart-legend {
+      display: flex;
+      gap: 18px;
+      margin-top: 8px;
+      color: var(--muted);
+      font-size: 11px;
+    }
+
+    .legend-item {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .legend-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+    }
+
+    /* ---------------- CHECK TABLE ---------------- */
+
+    .table-wrap {
+      overflow-x: auto;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13px;
+    }
+
+    th {
+      background: #fafbfc;
+      color: var(--muted);
+      font-size: 11px;
+      font-weight: 700;
+      text-align: left;
+      padding: 11px 18px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    td {
+      padding: 12px 18px;
+      border-bottom: 1px solid #f0f2f5;
+      white-space: nowrap;
+    }
+
+    tr:last-child td {
+      border-bottom: none;
+    }
+
+    .http-status {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+
+      padding: 4px 8px;
+      border-radius: 6px;
+
+      background: var(--green-bg);
+      color: var(--green-dark);
+
+      font-size: 11px;
+      font-weight: 700;
+    }
+
+    .http-status.bad {
+      background: var(--red-bg);
+      color: var(--red-dark);
+    }
+
+    .tiny-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: currentColor;
+    }
+
+    .latency {
+      font-family:
+        ui-monospace,
+        SFMono-Regular,
+        Menlo,
+        Consolas,
+        monospace;
+
+      font-size: 12px;
+    }
+
+    .footer {
+      text-align: center;
+      color: var(--muted);
+      font-size: 11px;
+      padding-top: 10px;
+    }
+
+    /* ---------------- LOADING / ERROR ---------------- */
+
+    .empty {
+      padding: 35px 20px;
+      text-align: center;
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    /* ---------------- RESPONSIVE ---------------- */
+
+    @media (max-width: 900px) {
+      .metrics {
+        grid-template-columns: repeat(2, 1fr);
       }
 
-      * {
-        box-sizing: border-box;
+      .status-card {
+        align-items: flex-start;
       }
 
-      body {
-        margin: 0;
-        background:
-          radial-gradient(1200px 380px at 50% -90px, #dbeafe 0%, transparent 65%),
-          var(--bg);
-        color: var(--text);
-        font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+      .status-left {
+        min-width: 0;
       }
+    }
 
+    @media (max-width: 640px) {
       .container {
-        max-width: 1080px;
-        margin: 0 auto;
-        padding: 20px;
-      }
-
-      .top-nav {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        gap: 12px;
-        margin-bottom: 12px;
-      }
-
-      .nav-links {
-        display: flex;
-        align-items: center;
-        gap: 8px;
-        flex-wrap: wrap;
-      }
-
-      .nav-link {
-        text-decoration: none;
-        border: 1px solid var(--border);
-        color: #1e293b;
-        background: #fff;
-        border-radius: 999px;
-        padding: 7px 12px;
-        font-size: 12px;
-        font-weight: 600;
-      }
-
-      .nav-link.active {
-        border-color: #bfdbfe;
-        background: #eff6ff;
-        color: #1d4ed8;
-      }
-
-      h1 {
-        margin: 0;
-        line-height: 1.2;
+        width: min(100% - 20px, 1180px);
+        padding-top: 15px;
       }
 
       .header {
-        display: flex;
-        justify-content: space-between;
-        align-items: flex-start;
-        gap: 14px;
-        margin-bottom: 14px;
-        flex-wrap: wrap;
+        flex-direction: column;
       }
 
-      .subtitle {
-        margin: 8px 0 0;
-        color: var(--muted);
-        font-size: 14px;
+      .refresh-info {
+        text-align: left;
       }
 
-      .pill {
-        background: var(--accent-soft);
-        color: #1d4ed8;
-        border-radius: 999px;
-        padding: 8px 12px;
-        font-size: 12px;
-        font-weight: 600;
-        white-space: nowrap;
-        max-width: 100%;
-        overflow: hidden;
-        text-overflow: ellipsis;
+      .status-card {
+        flex-direction: column;
       }
 
-      .grid {
-        display: grid;
-        grid-template-columns: repeat(6, minmax(0, 1fr));
-        gap: 12px;
-        margin-bottom: 14px;
+      .status-url {
+        max-width: calc(100vw - 90px);
       }
 
-      .card {
-        background: var(--card);
-        border: 1px solid var(--border);
-        border-radius: 12px;
-        padding: 14px;
-        min-width: 0;
+      .metrics {
+        grid-template-columns: 1fr 1fr;
+        gap: 10px;
       }
 
-      .metric-card {
-        grid-column: span 2;
-      }
-
-      .card h3 {
-        margin: 0;
-        font-size: 12px;
-        text-transform: uppercase;
-        letter-spacing: 0.04em;
-        color: #6b7280;
-        font-weight: 600;
-        line-height: 1.3;
+      .metric {
+        padding: 13px;
       }
 
       .metric-value {
-        margin: 8px 0 0;
-        font-size: clamp(18px, 3.2vw, 26px);
-        font-weight: 700;
-        line-height: 1.15;
-        overflow-wrap: anywhere;
-        word-break: break-word;
+        font-size: 20px;
       }
 
-      .metric-value.ok {
-        color: var(--ok);
-      }
-
-      .metric-value.bad {
-        color: var(--bad);
-      }
-
-      .panel {
-        background: var(--card);
-        border: 1px solid var(--border);
-        border-radius: 12px;
-        padding: 14px;
-        margin-bottom: 14px;
-      }
-
-      .panel h2 {
-        margin: 0 0 12px;
-        font-size: 16px;
-      }
-
-      .chart-toolbar {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        gap: 10px;
-        flex-wrap: wrap;
-        margin-bottom: 10px;
-      }
-
-      .chart-shell {
-        position: relative;
-        width: 100%;
-        border: 1px solid var(--border);
-        border-radius: 10px;
-        background: linear-gradient(180deg, #f8fbff 0%, #f8fafc 100%);
-        overflow: hidden;
-      }
-
-      #chart {
-        width: 100%;
-        height: 280px;
-        display: block;
-      }
-
-      .chart-tooltip {
-        position: absolute;
-        display: none;
-        pointer-events: none;
-        background: #0f172a;
-        color: #fff;
-        border-radius: 8px;
-        padding: 8px 10px;
-        font-size: 12px;
-        line-height: 1.45;
-        box-shadow: 0 8px 24px rgba(15, 23, 42, 0.2);
-        transform: translate(-50%, -110%);
-        min-width: 156px;
-        z-index: 2;
-      }
-
-      #request-log {
-        background: #fff;
-        border: 1px solid #e5e7eb;
-        border-radius: 10px;
-        padding: 8px 14px;
-        min-height: 220px;
-      }
-
-      .log-entry {
-        font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
-        border-bottom: 1px solid #f1f5f9;
-        padding: 10px 0;
-        font-size: 12px;
-        overflow-wrap: anywhere;
-      }
-
-      .log-entry:last-child {
-        border-bottom: none;
-      }
-
-      .log-entry.ok {
-        color: #15803d;
-      }
-
-      .log-entry.bad {
-        color: #b91c1c;
-      }
-
-      .muted {
-        color: var(--muted);
-      }
-
-      .logs-toolbar {
-        display: grid;
-        grid-template-columns: repeat(4, minmax(0, 1fr));
-        gap: 10px;
-        margin-bottom: 12px;
-      }
-
-      .control {
-        display: flex;
+      .panel-header {
+        align-items: flex-start;
         flex-direction: column;
-        gap: 6px;
-        min-width: 0;
       }
 
-      .control label {
-        color: var(--muted);
-        font-size: 12px;
-        font-weight: 600;
+      .uptime-bars {
+        height: 32px;
       }
 
-      .control input,
-      .control select {
-        width: 100%;
-        border: 1px solid var(--border);
-        border-radius: 8px;
-        background: #fff;
-        color: var(--text);
-        padding: 8px 10px;
-        font-size: 13px;
+      #latency-chart {
+        height: 220px;
       }
 
-      .logs-meta {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        gap: 12px;
-        margin: 8px 0 10px;
-        color: var(--muted);
-        font-size: 12px;
+      th,
+      td {
+        padding: 10px 12px;
       }
+    }
+  </style>
+</head>
 
-      .pagination {
-        display: flex;
-        align-items: center;
-        justify-content: flex-end;
-        gap: 8px;
-        margin-top: 12px;
-        flex-wrap: wrap;
-      }
+<body>
 
-      .pagination button {
-        border: 1px solid var(--border);
-        background: #fff;
-        color: var(--text);
-        border-radius: 8px;
-        padding: 8px 10px;
-        font-size: 12px;
-        font-weight: 600;
-        cursor: pointer;
-      }
+<main class="container">
 
-      .pagination button:hover:not(:disabled) {
-        border-color: #bfdbfe;
-        background: #eff6ff;
-      }
+  <!-- HEADER -->
 
-      .pagination button:disabled {
-        cursor: not-allowed;
-        opacity: 0.45;
-      }
+  <header class="header">
 
-      #page-label {
-        color: var(--muted);
-        font-size: 12px;
-        font-weight: 600;
-        min-width: 96px;
-        text-align: center;
-      }
+    <div class="brand">
 
-      @media (max-width: 980px) {
-        .container {
-          padding: 16px;
-        }
+      <div class="brand-icon">
+        ↯
+      </div>
 
-        .grid {
-          grid-template-columns: repeat(2, minmax(0, 1fr));
-        }
+      <div>
+        <h1>Server Monitor</h1>
+        <p>Endpoint availability & performance monitoring</p>
+      </div>
 
-        .metric-card {
-          grid-column: span 1;
-        }
+    </div>
 
-        .logs-toolbar {
-          grid-template-columns: repeat(2, minmax(0, 1fr));
-        }
-      }
+    <div class="refresh-info">
+      <strong id="refresh-status">Auto-refresh enabled</strong>
+      <span id="last-updated">Last updated: —</span>
+    </div>
 
-      @media (max-width: 640px) {
-        .container {
-          padding: 12px;
-        }
+  </header>
 
-        .top-nav {
-          flex-direction: column;
-          align-items: stretch;
-        }
 
-        .nav-links {
-          justify-content: center;
-        }
+  <!-- MAIN STATUS -->
 
-        .header {
-          align-items: stretch;
-        }
+  <section class="status-card">
 
-        .grid {
-          grid-template-columns: 1fr;
-        }
+    <div class="status-left">
 
-        .logs-toolbar {
-          grid-template-columns: 1fr;
-        }
+      <div id="status-dot" class="status-dot"></div>
 
-        .panel,
-        .card {
-          padding: 12px;
-        }
+      <div>
 
-        .pill {
-          width: 100%;
-          text-align: center;
-        }
+        <h2 id="status-title" class="status-title">
+          Checking server...
+        </h2>
 
-        .pagination {
-          justify-content: center;
-        }
-
-        #chart {
-          height: 220px;
-        }
-
-        .chart-tooltip {
-          min-width: 132px;
-          font-size: 11px;
-        }
-      }
-    </style>
-  </head>
-  <body>
-    <main class="container">
-      <nav class="top-nav" aria-label="Main navigation">
-        <div class="nav-links">
-          <a class="nav-link active" href="index.html">Dashboard</a>
-          <a class="nav-link" href="documentation.html">Documentation</a>
+        <div id="status-url" class="status-url">
+          Loading endpoint...
         </div>
-      </nav>
 
-      <header class="header">
-        <div>
-          <h1>URL Ping Dashboard v2</h1>
-          <p class="subtitle">10,000 requests/run • updates every 10 seconds</p>
-        </div>
-        <div class="pill" id="last-updated">Last updated: -</div>
-      </header>
+      </div>
 
-      <section class="grid">
-        <article class="card metric-card"><h3>Run Timestamp (UTC)</h3><p id="run-time" class="metric-value">-</p></article>
-        <article class="card metric-card"><h3>Completed</h3><p id="completed" class="metric-value">-</p></article>
-        <article class="card metric-card"><h3>Success 200</h3><p id="ok-count" class="metric-value ok">-</p></article>
-        <article class="card metric-card"><h3>Non-200</h3><p id="bad-count" class="metric-value bad">-</p></article>
-        <article class="card metric-card"><h3>Avg Latency (ms)</h3><p id="avg-latency" class="metric-value">-</p></article>
-        <article class="card metric-card"><h3>Success Rate</h3><p id="success-rate" class="metric-value">-</p></article>
-      </section>
+    </div>
 
-      <section class="panel">
-        <h2>Area Chart - Interactive</h2>
-        <div class="chart-toolbar">
-          <p class="muted">Shows average and peak response latency over the selected time window.</p>
-          <div class="control" style="max-width: 190px; width: 100%;">
-            <label for="chart-range">Filter range</label>
-            <select id="chart-range">
-              <option value="24h">Last 24 hours</option>
-              <option value="7d">Last 1 week</option>
-              <option value="30d" selected>Last 1 month</option>
-              <option value="60d">Last 2 months</option>
-              <option value="180d">Last 6 months</option>
-              <option value="365d">Last 1 year</option>
-          <p class="muted">Showing latency distribution over time.</p>
-          <div class="control" style="max-width: 190px; width: 100%;">
-            <label for="chart-range">Filter range</label>
-            <select id="chart-range">
-              <option value="30" selected>Last 30 runs</option>
-              <option value="15">Last 15 runs</option>
-              <option value="7">Last 7 runs</option>
-            </select>
-          </div>
-        </div>
-        <div class="chart-shell">
-          <svg id="chart" viewBox="0 0 980 280" preserveAspectRatio="none" role="img" aria-label="Interactive area chart of latency trend"></svg>
-          <div id="chart-tooltip" class="chart-tooltip"></div>
-        </div>
-        <p class="muted" style="margin: 10px 2px 0;">
-          <strong>Color meaning:</strong> Blue shaded area + blue line = Average latency (ms), Red line = Peak/Max latency (ms).
+    <div id="status-badge" class="status-badge">
+      CHECKING
+    </div>
+
+  </section>
+
+
+  <!-- METRICS -->
+
+  <section class="metrics">
+
+    <article class="metric">
+
+      <div class="metric-label">
+        UPTIME
+      </div>
+
+      <div id="uptime" class="metric-value success">
+        —
+      </div>
+
+      <div class="metric-sub">
+        Based on recorded checks
+      </div>
+
+    </article>
+
+
+    <article class="metric">
+
+      <div class="metric-label">
+        AVG RESPONSE
+      </div>
+
+      <div id="avg-latency" class="metric-value">
+        —
+      </div>
+
+      <div class="metric-sub">
+        Milliseconds
+      </div>
+
+    </article>
+
+
+    <article class="metric">
+
+      <div class="metric-label">
+        LAST STATUS
+      </div>
+
+      <div id="last-status" class="metric-value">
+        —
+      </div>
+
+      <div class="metric-sub">
+        HTTP response
+      </div>
+
+    </article>
+
+
+    <article class="metric">
+
+      <div class="metric-label">
+        TOTAL CHECKS
+      </div>
+
+      <div id="total-checks" class="metric-value">
+        —
+      </div>
+
+      <div class="metric-sub">
+        Recorded requests
+      </div>
+
+    </article>
+
+  </section>
+
+
+  <!-- UPTIME HISTORY -->
+
+  <section class="panel">
+
+    <div class="panel-header">
+
+      <div>
+        <h2 class="panel-title">
+          Uptime history
+        </h2>
+
+        <p class="panel-subtitle">
+          Availability across recent monitoring runs
         </p>
-      </section>
+      </div>
 
-      <section class="panel">
-        <h2>Request Logs</h2>
-        <div class="logs-toolbar">
-          <div class="control">
-            <label for="status-filter">Status filter</label>
-            <select id="status-filter">
-              <option value="all">All</option>
-              <option value="200">Only HTTP 200</option>
-              <option value="non200">Only Non-200</option>
-            </select>
+      <div class="range-buttons">
+
+        <button
+          class="range-btn active"
+          data-range="30"
+        >
+          30 runs
+        </button>
+
+        <button
+          class="range-btn"
+          data-range="60"
+        >
+          60
+        </button>
+
+        <button
+          class="range-btn"
+          data-range="120"
+        >
+          120
+        </button>
+
+        <button
+          class="range-btn"
+          data-range="180"
+        >
+          180
+        </button>
+
+      </div>
+
+    </div>
+
+
+    <div class="uptime-content">
+
+      <div class="uptime-summary">
+
+        <div>
+          <div id="uptime-percent" class="uptime-percent">
+            —
           </div>
 
-          <div class="control">
-            <label for="search-filter">Search text</label>
-            <input id="search-filter" type="text" placeholder="Search by status, URL, or keyword" />
-          </div>
-
-          <div class="control">
-            <label for="page-size">Rows per page</label>
-            <select id="page-size">
-              <option value="10">10</option>
-              <option value="20" selected>20</option>
-              <option value="30">30</option>
-              <option value="50">50</option>
-            </select>
-          </div>
-
-          <div class="control">
-            <label for="sort-order">Order</label>
-            <select id="sort-order">
-              <option value="newest" selected>Newest first</option>
-              <option value="oldest">Oldest first</option>
-            </select>
+          <div class="uptime-label">
+            availability
           </div>
         </div>
 
-        <div class="logs-meta">
-          <span id="results-count">Showing 0 of 0 entries</span>
+        <div class="uptime-label">
+          Green = successful run<br>
+          Red = failed run
         </div>
 
-        <div id="request-log"><p class="muted">Loading...</p></div>
+      </div>
 
-        <div class="pagination">
-          <button id="first-page" type="button">First</button>
-          <button id="prev-page" type="button">Prev</button>
-          <span id="page-label">Page 1 of 1</span>
-          <button id="next-page" type="button">Next</button>
-          <button id="last-page" type="button">Last</button>
+
+      <div id="uptime-bars" class="uptime-bars">
+        <div class="empty">
+          Loading...
         </div>
-      </section>
-    </main>
+      </div>
 
-    <script>
-      const SUMMARY_URL = "logs/latest-summary.json";
-      const HISTORY_URL = "logs/runs.ndjson";
-      const LOG_URL = "logs/requests.log";
 
-      const state = {
-        allLogs: [],
-        filteredLogs: [],
-        currentPage: 1,
-        pageSize: 20,
-        statusFilter: "all",
-        searchTerm: "",
-        order: "newest",
-      };
+      <div class="uptime-legend">
 
-      function setText(id, value) {
-        document.getElementById(id).textContent = value;
+        <span id="oldest-run">
+          —
+        </span>
+
+        <span>
+          Each run = monitoring cycle
+        </span>
+
+        <span id="latest-run">
+          —
+        </span>
+
+      </div>
+
+    </div>
+
+  </section>
+
+
+  <!-- RESPONSE TIME -->
+
+  <section class="panel">
+
+    <div class="panel-header">
+
+      <div>
+        <h2 class="panel-title">
+          Response time
+        </h2>
+
+        <p class="panel-subtitle">
+          Average and maximum latency
+        </p>
+      </div>
+
+    </div>
+
+
+    <div class="chart-container">
+
+      <svg
+        id="latency-chart"
+        viewBox="0 0 1000 280"
+        preserveAspectRatio="none"
+      ></svg>
+
+      <div class="chart-legend">
+
+        <div class="legend-item">
+          <span
+            class="legend-dot"
+            style="background:#2563eb"
+          ></span>
+
+          Average latency
+        </div>
+
+        <div class="legend-item">
+          <span
+            class="legend-dot"
+            style="background:#ef4444"
+          ></span>
+
+          Maximum latency
+        </div>
+
+      </div>
+
+    </div>
+
+  </section>
+
+
+  <!-- RECENT CHECKS -->
+
+  <section class="panel">
+
+    <div class="panel-header">
+
+      <div>
+
+        <h2 class="panel-title">
+          Recent checks
+        </h2>
+
+        <p class="panel-subtitle">
+          Latest HTTP monitoring requests
+        </p>
+
+      </div>
+
+      <div
+        id="check-count"
+        class="panel-subtitle"
+      >
+        —
+      </div>
+
+    </div>
+
+
+    <div class="table-wrap">
+
+      <table>
+
+        <thead>
+
+          <tr>
+            <th>TIME</th>
+            <th>REQUEST</th>
+            <th>STATUS</th>
+            <th>RESPONSE TIME</th>
+          </tr>
+
+        </thead>
+
+        <tbody id="checks-table">
+
+          <tr>
+            <td colspan="4" class="empty">
+              Loading checks...
+            </td>
+          </tr>
+
+        </tbody>
+
+      </table>
+
+    </div>
+
+  </section>
+
+
+  <footer class="footer">
+    Monitoring runs every 5 minutes · Dashboard refreshes every 10 seconds
+  </footer>
+
+</main>
+
+
+<script>
+
+  const SUMMARY_URL = "logs/latest-summary.json";
+  const HISTORY_URL = "logs/runs.ndjson";
+  const LOG_URL = "logs/requests.log";
+
+  const state = {
+    runs: [],
+    logs: [],
+    range: 30
+  };
+
+
+  /* --------------------------------------------------
+     HELPERS
+  -------------------------------------------------- */
+
+  function formatNumber(value) {
+
+    return new Intl.NumberFormat("en-US")
+      .format(Number(value || 0));
+
+  }
+
+
+  function formatDate(value) {
+
+    if (!value) {
+      return "—";
+    }
+
+    const date = new Date(value);
+
+    if (Number.isNaN(date.getTime())) {
+      return String(value);
+    }
+
+    return date.toLocaleString("en-IN", {
+      day: "2-digit",
+      month: "short",
+      hour: "2-digit",
+      minute: "2-digit"
+    });
+
+  }
+
+
+  function escapeHtml(value) {
+
+    return String(value)
+      .replaceAll("&", "&amp;")
+      .replaceAll("<", "&lt;")
+      .replaceAll(">", "&gt;")
+      .replaceAll('"', "&quot;")
+      .replaceAll("'", "&#039;");
+
+  }
+
+
+  /* --------------------------------------------------
+     FETCH
+  -------------------------------------------------- */
+
+  async function fetchJson(url) {
+
+    const response = await fetch(
+      `${url}?t=${Date.now()}`,
+      {
+        cache: "no-store"
       }
+    );
 
-      function drawLatencyChart(runs) {
-        const svg = document.getElementById("chart");
-        const tooltip = document.getElementById("chart-tooltip");
-        const selectedRange = document.getElementById("chart-range").value || "30d";
-        const daysMap = {
-          "24h": 1,
-          "7d": 7,
-          "30d": 30,
-          "60d": 60,
-          "180d": 180,
-          "365d": 365,
-        };
+    if (!response.ok) {
+      throw new Error(
+        `${url} returned ${response.status}`
+      );
+    }
 
-        const normalizedRuns = runs
-        const normalized = runs
-          .map((run, index) => {
-            const rawTs = run.timestamp || run.run_timestamp_utc || run.run_id || `Run ${index + 1}`;
-            const parsedTs = new Date(rawTs);
-            return {
-              index,
-              ts: rawTs,
-              tsDate: Number.isNaN(parsedTs.getTime()) ? null : parsedTs,
-              avg: Number(run.avg_latency_ms || 0),
-              max: Number(run.max_latency_ms || 0),
-            };
-          })
-          .filter((run) => Number.isFinite(run.avg) && Number.isFinite(run.max));
+    return response.json();
 
-        const latestTimestamp = [...normalizedRuns].reverse().find((run) => run.tsDate)?.tsDate;
-        const cutoff = latestTimestamp ? new Date(latestTimestamp) : null;
-        if (cutoff) {
-          cutoff.setDate(cutoff.getDate() - (daysMap[selectedRange] || 30));
-        }
-
-        const points = normalizedRuns
-          .filter((run) => !cutoff || !run.tsDate || run.tsDate >= cutoff)
-          .sort((a, b) => {
-            if (!a.tsDate || !b.tsDate) return a.index - b.index;
-            return a.tsDate - b.tsDate;
-          });
-        const latestTs = [...normalized]
-          .reverse()
-          .find((run) => run.tsDate)?.tsDate;
-
-        const cutoff = latestTs ? new Date(latestTs) : null;
-        if (cutoff) {
-          cutoff.setDate(cutoff.getDate() - (daysMap[selectedRange] || 30));
-        }
-
-        const data = normalized.filter((run) => !cutoff || !run.tsDate || run.tsDate >= cutoff);
-
-        const width = 980;
-        const height = 280;
-        const pad = { top: 16, right: 14, bottom: 36, left: 46 };
-        const innerW = width - pad.left - pad.right;
-        const innerH = height - pad.top - pad.bottom;
-
-        if (!data.length) {
-          svg.innerHTML = `<text x="28" y="36" fill="#64748b" font-size="14">No run history yet.</text>`;
-          tooltip.style.display = "none";
-          return;
-        }
-
-        const yMax = Math.max(...data.map((d) => d.max), 1) * 1.08;
-        const x = (i) => pad.left + (data.length <= 1 ? innerW / 2 : (i * innerW) / (data.length - 1));
-        const y = (v) => pad.top + innerH - (Math.min(v, yMax) / yMax) * innerH;
-
-        const areaPath = data
-          .map((d, i) => `${i === 0 ? "M" : "L"}${x(i)},${y(d.avg)}`)
-          .join(" ") + ` L ${x(data.length - 1)},${y(0)} L ${x(0)},${y(0)} Z`;
-
-        const range = Number(document.getElementById("chart-range").value) || 30;
-        const data = runs
-          .slice(-range)
-          .map((run, index) => ({
-            index,
-            ts: run.timestamp || run.run_timestamp_utc || run.run_id || `Run ${index + 1}`,
-            avg: Number(run.avg_latency_ms || 0),
-            max: Number(run.max_latency_ms || 0),
-          }))
-          .filter((run) => Number.isFinite(run.avg) && Number.isFinite(run.max));
-
-        const width = 980;
-        const height = 280;
-        const pad = { top: 16, right: 14, bottom: 36, left: 46 };
-        const innerW = width - pad.left - pad.right;
-        const innerH = height - pad.top - pad.bottom;
-
-        if (!points.length) {
-          svg.innerHTML = `<text x="28" y="36" fill="#64748b" font-size="14">No run history yet for this range.</text>`;
-        if (!data.length) {
-          svg.innerHTML = `<text x="28" y="36" fill="#64748b" font-size="14">No run history yet.</text>`;
-          tooltip.style.display = "none";
-          return;
-        }
-
-        const yMax = Math.max(...data.map((d) => d.max), 1) * 1.08;
-        const x = (i) => pad.left + (data.length <= 1 ? innerW / 2 : (i * innerW) / (data.length - 1));
-        const y = (v) => pad.top + innerH - (Math.min(v, yMax) / yMax) * innerH;
-
-        const areaPath = data
-          .map((d, i) => `${i === 0 ? "M" : "L"}${x(i)},${y(d.avg)}`)
-          .join(" ") + ` L ${x(data.length - 1)},${y(0)} L ${x(0)},${y(0)} Z`;
-
-        const linePath = data.map((d, i) => `${i === 0 ? "M" : "L"}${x(i)},${y(d.avg)}`).join(" ");
-        const maxPath = data.map((d, i) => `${i === 0 ? "M" : "L"}${x(i)},${y(d.max)}`).join(" ");
-
-        const yTicks = [0, yMax / 2, yMax];
-        const tickLines = yTicks
-          .map((t) => {
-            const yy = y(t);
-            const label = `${Math.round(t)} ms`;
-            return `<line x1="${pad.left}" y1="${yy}" x2="${width - pad.right}" y2="${yy}" stroke="#e2e8f0" stroke-width="1" />
-                    <text x="8" y="${yy + 4}" fill="#64748b" font-size="11">${label}</text>`;
-          })
-          .join("");
-
-        const xTicks = [0, Math.floor((data.length - 1) / 2), data.length - 1]
-          .filter((v, idx, arr) => arr.indexOf(v) === idx)
-          .map((i) => {
-
-            const label = data[i].tsDate
-              ? data[i].tsDate.toLocaleDateString("en-US", { month: "short", day: "numeric" })
-              : String(data[i].ts).replace("T", " ").slice(5, 16);
-
-            const label = String(data[i].ts).replace("T", " ").slice(5, 16);
-
-            return `<text x="${x(i)}" y="${height - 10}" fill="#64748b" font-size="11" text-anchor="middle">${label}</text>`;
-          })
-          .join("");
-
-        svg.innerHTML = `
-          <defs>
-            <linearGradient id="avgFill" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="0%" stop-color="#3b82f6" stop-opacity="0.35" />
-              <stop offset="100%" stop-color="#3b82f6" stop-opacity="0.05" />
-            </linearGradient>
-          </defs>
-          ${tickLines}
-          <path d="${avgAreaPath}" fill="url(#avgFill)" />
-          <path d="${maxLinePath}" stroke="#ef4444" stroke-width="1.5" fill="none" stroke-opacity="0.8" />
-          <path d="${avgLinePath}" stroke="#2563eb" stroke-width="2.2" fill="none" />
-          ${points.map((p, i) => `<circle cx="${x(i)}" cy="${y(p.avg)}" r="2.5" fill="#2563eb" />`).join("")}
-          <path d="${areaPath}" fill="url(#avgFill)" />
-          <path d="${maxPath}" stroke="#ef4444" stroke-width="1.5" fill="none" stroke-opacity="0.7" />
-          <path d="${linePath}" stroke="#2563eb" stroke-width="2.2" fill="none" />
-          ${data.map((d, i) => `<circle cx="${x(i)}" cy="${y(d.avg)}" r="2.5" fill="#2563eb" />`).join("")}
-          ${xTicks}
-        `;
-
-        const shell = svg.parentElement;
-        shell.onmouseleave = () => {
-          tooltip.style.display = "none";
-        };
+  }
 
 
-        const hideTooltip = () => {
-          tooltip.style.display = "none";
-        };
+  async function fetchSummary() {
 
-        shell.onmouseleave = hideTooltip;
-        shell.onmousemove = (event) => {
-          const rect = svg.getBoundingClientRect();
-          const relativeX = ((event.clientX - rect.left) / rect.width) * width;
-          const ratio = Math.min(1, Math.max(0, (relativeX - pad.left) / innerW));
-          const index = Math.round(ratio * (points.length - 1));
-          const point = points[index];
-          if (!point) return;
+    return fetchJson(SUMMARY_URL);
 
-          tooltip.style.display = "block";
-          tooltip.style.left = `${(x(index) / width) * rect.width}px`;
-          tooltip.style.top = `${(y(point.avg) / height) * rect.height}px`;
+  }
 
-          const pointLabel = point.tsDate
-            ? point.tsDate.toLocaleString("en-US", { month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" })
-            : String(point.ts).slice(0, 16);
 
-          tooltip.innerHTML = `<strong>${pointLabel}</strong><br>Avg: ${point.avg.toFixed(0)} ms<br>Max: ${point.max.toFixed(0)} ms`;
-          const index = Math.round(ratio * (data.length - 1));
-          const point = data[index];
-          if (!point) return;
+  async function fetchRuns() {
 
-          const dotX = x(index);
-          const dotY = y(point.avg);
-          tooltip.style.display = "block";
-          tooltip.style.left = `${(dotX / width) * rect.width}px`;
-          tooltip.style.top = `${(dotY / height) * rect.height}px`;
-          const pointLabel = point.tsDate
-            ? point.tsDate.toLocaleString("en-US", { month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" })
-            : String(point.ts).replace("T", " ").slice(0, 16);
-          tooltip.innerHTML = `<strong>${pointLabel}</strong><br>Avg: ${point.avg.toFixed(0)} ms<br>Max: ${point.max.toFixed(0)} ms`;
-          tooltip.innerHTML = `<strong>${String(point.ts).replace("T", " ").slice(0, 16)}</strong><br>Avg: ${point.avg.toFixed(0)} ms<br>Max: ${point.max.toFixed(0)} ms`;
-        };
+    const response = await fetch(
+      `${HISTORY_URL}?t=${Date.now()}`,
+      {
+        cache: "no-store"
       }
+    );
 
-      async function fetchSummary() {
-        const response = await fetch(SUMMARY_URL, { cache: "no-store" });
-        if (!response.ok) throw new Error(`Summary fetch failed: ${response.status}`);
-        return response.json();
-      }
+    if (!response.ok) {
+      return [];
+    }
 
-      async function fetchRunsHistory() {
-        const response = await fetch(HISTORY_URL, { cache: "no-store" });
-        if (!response.ok) return [];
-        const text = await response.text();
-        return text
-          .split("\n")
-          .map((line) => line.trim())
-          .filter(Boolean)
-          .map((line) => {
-            try {
-              return JSON.parse(line);
-            } catch {
-              return null;
-            }
-          })
-          .filter(Boolean);
-      }
+    const text = await response.text();
 
-      async function fetchRecentLogs() {
-        const response = await fetch(LOG_URL, { cache: "no-store" });
-        if (!response.ok) {
-          return [];
-        }
-
-        const text = await response.text();
-        return text
-          .split("\n")
-          .map((line) => line.trim())
-          .filter(Boolean);
-      }
-
-      function applyLogFilters() {
-        let rows = [...state.allLogs];
-
-        if (state.statusFilter === "200") {
-          rows = rows.filter((line) => line.includes("Status: 200"));
-        }
-
-        if (state.statusFilter === "non200") {
-          rows = rows.filter((line) => !line.includes("Status: 200"));
-        }
-
-        if (state.searchTerm) {
-          const q = state.searchTerm.toLowerCase();
-          rows = rows.filter((line) => line.toLowerCase().includes(q));
-        }
-
-        if (state.order === "newest") {
-          rows = rows.reverse();
-        }
-
-        state.filteredLogs = rows;
-      }
-
-      function renderLogList() {
-        const logContainer = document.getElementById("request-log");
-        const resultsCount = document.getElementById("results-count");
-        const pageLabel = document.getElementById("page-label");
-        const firstBtn = document.getElementById("first-page");
-        const prevBtn = document.getElementById("prev-page");
-        const nextBtn = document.getElementById("next-page");
-        const lastBtn = document.getElementById("last-page");
-
-        const total = state.filteredLogs.length;
-        const pages = Math.max(1, Math.ceil(total / state.pageSize));
-        state.currentPage = Math.min(state.currentPage, pages);
-        state.currentPage = Math.max(1, state.currentPage);
-
-        const start = (state.currentPage - 1) * state.pageSize;
-        const end = start + state.pageSize;
-        const visible = state.filteredLogs.slice(start, end);
-
-        resultsCount.textContent = `Showing ${visible.length} of ${total} entries`;
-        pageLabel.textContent = `Page ${state.currentPage} of ${pages}`;
-
-        firstBtn.disabled = state.currentPage === 1;
-        prevBtn.disabled = state.currentPage === 1;
-        nextBtn.disabled = state.currentPage >= pages;
-        lastBtn.disabled = state.currentPage >= pages;
-
-        if (!visible.length) {
-          logContainer.innerHTML = '<p class="muted">No logs match your filters.</p>';
-          return;
-        }
-
-        logContainer.innerHTML = "";
-        visible.forEach((line) => {
-          const row = document.createElement("div");
-          row.className = "log-entry";
-          row.classList.add(line.includes("Status: 200") ? "ok" : "bad");
-          row.textContent = line;
-          logContainer.appendChild(row);
-        });
-      }
-
-      function syncFiltersFromUI() {
-        state.statusFilter = document.getElementById("status-filter").value;
-        state.searchTerm = document.getElementById("search-filter").value.trim();
-        state.pageSize = Number(document.getElementById("page-size").value) || 20;
-        state.order = document.getElementById("sort-order").value;
-      }
-
-      function rerenderLogs(resetPage) {
-        syncFiltersFromUI();
-        if (resetPage) {
-          state.currentPage = 1;
-        }
-        applyLogFilters();
-        renderLogList();
-      }
-
-      function registerLogControls() {
-        document.getElementById("status-filter").addEventListener("change", () => rerenderLogs(true));
-        document.getElementById("search-filter").addEventListener("input", () => rerenderLogs(true));
-        document.getElementById("page-size").addEventListener("change", () => rerenderLogs(true));
-        document.getElementById("sort-order").addEventListener("change", () => rerenderLogs(true));
-
-        document.getElementById("first-page").addEventListener("click", () => {
-          state.currentPage = 1;
-          renderLogList();
-        });
-
-        document.getElementById("prev-page").addEventListener("click", () => {
-          state.currentPage -= 1;
-          renderLogList();
-        });
-
-        document.getElementById("next-page").addEventListener("click", () => {
-          state.currentPage += 1;
-          renderLogList();
-        });
-
-        document.getElementById("last-page").addEventListener("click", () => {
-          const pages = Math.max(1, Math.ceil(state.filteredLogs.length / state.pageSize));
-          state.currentPage = pages;
-          renderLogList();
-        });
-      }
-
-      async function refreshDashboard() {
-        const logContainer = document.getElementById("request-log");
+    return text
+      .split("\n")
+      .map(line => line.trim())
+      .filter(Boolean)
+      .map(line => {
 
         try {
-          const [summary, runs, recentLogs] = await Promise.all([
-            fetchSummary(),
-            fetchRunsHistory(),
-            fetchRecentLogs(),
-          ]);
-
-          setText("run-time", summary.run_timestamp_utc || "-");
-          setText("completed", String(summary.completed_count ?? "-"));
-          setText("ok-count", String(summary.success_200 ?? "-"));
-          setText("bad-count", String(summary.non_200 ?? "-"));
-          setText("avg-latency", String(summary.avg_latency_ms ?? "-"));
-          setText("success-rate", `${summary.success_rate_percent ?? "-"}%`);
-          setText("last-updated", `Last updated: ${new Date().toLocaleTimeString()}`);
-
-          drawLatencyChart(runs);
-
-          state.allLogs = recentLogs;
-          rerenderLogs(false);
-        } catch (error) {
-          console.error("Dashboard refresh error:", error);
-          logContainer.innerHTML = `<p class="muted">Error loading logs: ${error.message}</p>`;
+          return JSON.parse(line);
+        } catch {
+          return null;
         }
+
+      })
+      .filter(Boolean);
+
+  }
+
+
+  async function fetchLogs() {
+
+    const response = await fetch(
+      `${LOG_URL}?t=${Date.now()}`,
+      {
+        cache: "no-store"
+      }
+    );
+
+    if (!response.ok) {
+      return [];
+    }
+
+    const text = await response.text();
+
+    return text
+      .split("\n")
+      .map(line => line.trim())
+      .filter(Boolean);
+
+  }
+
+
+  /* --------------------------------------------------
+     MAIN STATUS
+  -------------------------------------------------- */
+
+  function renderStatus(summary) {
+
+    const ok =
+      Number(summary.success_200 || 0) > 0 &&
+      Number(summary.non_200 || 0) === 0;
+
+    const dot =
+      document.getElementById("status-dot");
+
+    const badge =
+      document.getElementById("status-badge");
+
+    const title =
+      document.getElementById("status-title");
+
+    dot.classList.toggle("down", !ok);
+    badge.classList.toggle("down", !ok);
+
+    if (ok) {
+
+      title.textContent = "Server is operational";
+      badge.textContent = "UP";
+
+    } else {
+
+      title.textContent = "Server is experiencing issues";
+      badge.textContent = "DOWN";
+
+    }
+
+    document.getElementById("status-url")
+      .textContent =
+        summary.url || "Endpoint unavailable";
+
+  }
+
+
+  /* --------------------------------------------------
+     METRICS
+  -------------------------------------------------- */
+
+  function renderMetrics(summary) {
+
+    const completed =
+      Number(summary.completed_count || 0);
+
+    const successful =
+      Number(summary.success_200 || 0);
+
+    const uptime =
+      completed > 0
+        ? ((successful / completed) * 100)
+        : 0;
+
+    document.getElementById("uptime")
+      .textContent =
+        `${uptime.toFixed(2)}%`;
+
+    document.getElementById("uptime-percent")
+      .textContent =
+        `${uptime.toFixed(2)}%`;
+
+    document.getElementById("avg-latency")
+      .textContent =
+        `${formatNumber(summary.avg_latency_ms)} ms`;
+
+    const statuses =
+      summary.status_breakdown || {};
+
+    const statusCodes =
+      Object.keys(statuses);
+
+    const latestStatus =
+      statusCodes.length
+        ? statusCodes.sort().at(-1)
+        : "—";
+
+    document.getElementById("last-status")
+      .textContent = latestStatus;
+
+    document.getElementById("total-checks")
+      .textContent =
+        formatNumber(completed);
+
+  }
+
+
+  /* --------------------------------------------------
+     UPTIME BARS
+  -------------------------------------------------- */
+
+  function renderUptime(runs) {
+
+    const container =
+      document.getElementById("uptime-bars");
+
+    const selected =
+      runs.slice(-state.range);
+
+    if (!selected.length) {
+
+      container.innerHTML =
+        `<div class="empty">No monitoring history yet.</div>`;
+
+      return;
+    }
+
+    let successful = 0;
+
+    container.innerHTML = "";
+
+    selected.forEach(run => {
+
+      const ok =
+        Number(run.non_200 || 0) === 0 &&
+        Number(run.success_200 || 0) > 0;
+
+      if (ok) {
+        successful++;
       }
 
-      registerLogControls();
-      document.getElementById("chart-range").addEventListener("change", async () => {
-        const runs = await fetchRunsHistory();
-        drawLatencyChart(runs);
+      const bar =
+        document.createElement("div");
+
+      bar.className =
+        `uptime-bar ${ok ? "" : "down"}`;
+
+      bar.title =
+        `${formatDate(run.run_timestamp_utc)}
+Status: ${ok ? "UP" : "DOWN"}
+Success: ${run.success_rate_percent ?? 0}%
+Avg: ${run.avg_latency_ms ?? 0} ms`;
+
+      container.appendChild(bar);
+
+    });
+
+
+    const percentage =
+      selected.length
+        ? (successful / selected.length) * 100
+        : 0;
+
+    document.getElementById("uptime-percent")
+      .textContent =
+        `${percentage.toFixed(2)}%`;
+
+    const first = selected[0];
+    const last = selected[selected.length - 1];
+
+    document.getElementById("oldest-run")
+      .textContent =
+        first
+          ? formatDate(first.run_timestamp_utc)
+          : "—";
+
+    document.getElementById("latest-run")
+      .textContent =
+        last
+          ? formatDate(last.run_timestamp_utc)
+          : "—";
+
+  }
+
+
+  /* --------------------------------------------------
+     LATENCY CHART
+  -------------------------------------------------- */
+
+  function renderChart(runs) {
+
+    const svg =
+      document.getElementById("latency-chart");
+
+    const data =
+      runs
+        .slice(-state.range)
+        .map(run => ({
+          timestamp:
+            run.run_timestamp_utc,
+
+          avg:
+            Number(run.avg_latency_ms || 0),
+
+          max:
+            Number(run.max_latency_ms || 0)
+        }));
+
+
+    if (!data.length) {
+
+      svg.innerHTML = `
+        <text
+          x="30"
+          y="40"
+          fill="#6b778c"
+          font-size="14"
+        >
+          No monitoring history yet.
+        </text>
+      `;
+
+      return;
+    }
+
+
+    const width = 1000;
+    const height = 280;
+
+    const pad = {
+      left: 55,
+      right: 20,
+      top: 20,
+      bottom: 35
+    };
+
+    const chartWidth =
+      width - pad.left - pad.right;
+
+    const chartHeight =
+      height - pad.top - pad.bottom;
+
+
+    const maxValue =
+      Math.max(
+        ...data.map(point => point.max),
+        10
+      ) * 1.15;
+
+
+    function x(index) {
+
+      if (data.length === 1) {
+        return pad.left + chartWidth / 2;
+      }
+
+      return (
+        pad.left +
+        (index * chartWidth) /
+        (data.length - 1)
+      );
+
+    }
+
+
+    function y(value) {
+
+      return (
+        pad.top +
+        chartHeight -
+        (value / maxValue) * chartHeight
+      );
+
+    }
+
+
+    const avgPath =
+      data
+        .map(
+          (point, index) =>
+            `${index === 0 ? "M" : "L"}
+             ${x(index)}
+             ${y(point.avg)}`
+        )
+        .join(" ");
+
+
+    const maxPath =
+      data
+        .map(
+          (point, index) =>
+            `${index === 0 ? "M" : "L"}
+             ${x(index)}
+             ${y(point.max)}`
+        )
+        .join(" ");
+
+
+    const areaPath =
+      `${avgPath}
+       L ${x(data.length - 1)} ${y(0)}
+       L ${x(0)} ${y(0)}
+       Z`;
+
+
+    const gridLines =
+      [0, 0.5, 1]
+        .map(level => {
+
+          const value =
+            maxValue * level;
+
+          const yy = y(value);
+
+          return `
+            <line
+              x1="${pad.left}"
+              y1="${yy}"
+              x2="${width - pad.right}"
+              y2="${yy}"
+              stroke="#e5e7eb"
+              stroke-width="1"
+            />
+
+            <text
+              x="5"
+              y="${yy + 4}"
+              fill="#6b778c"
+              font-size="11"
+            >
+              ${Math.round(value)} ms
+            </text>
+          `;
+
+        })
+        .join("");
+
+
+    const dots =
+      data
+        .map(
+          (point, index) => `
+            <circle
+              cx="${x(index)}"
+              cy="${y(point.avg)}"
+              r="3"
+              fill="#2563eb"
+            >
+              <title>
+                ${formatDate(point.timestamp)}
+                Avg: ${point.avg} ms
+                Max: ${point.max} ms
+              </title>
+            </circle>
+          `
+        )
+        .join("");
+
+
+    svg.innerHTML = `
+
+      <defs>
+
+        <linearGradient
+          id="latencyFill"
+          x1="0"
+          y1="0"
+          x2="0"
+          y2="1"
+        >
+
+          <stop
+            offset="0%"
+            stop-color="#2563eb"
+            stop-opacity="0.18"
+          />
+
+          <stop
+            offset="100%"
+            stop-color="#2563eb"
+            stop-opacity="0.01"
+          />
+
+        </linearGradient>
+
+      </defs>
+
+
+      ${gridLines}
+
+
+      <path
+        d="${areaPath}"
+        fill="url(#latencyFill)"
+      />
+
+
+      <path
+        d="${maxPath}"
+        fill="none"
+        stroke="#ef4444"
+        stroke-width="1.5"
+        stroke-linejoin="round"
+        stroke-linecap="round"
+      />
+
+
+      <path
+        d="${avgPath}"
+        fill="none"
+        stroke="#2563eb"
+        stroke-width="2.5"
+        stroke-linejoin="round"
+        stroke-linecap="round"
+      />
+
+
+      ${dots}
+
+    `;
+
+  }
+
+
+  /* --------------------------------------------------
+     REQUEST LOG PARSER
+  -------------------------------------------------- */
+
+  function parseLog(line) {
+
+    const match =
+      line.match(
+        /^(.+?)\s+- Request #(\d+) - Status: (\d+) - LatencyMs: (\d+)$/
+      );
+
+    if (!match) {
+      return null;
+    }
+
+    return {
+
+      timestamp: match[1],
+
+      request:
+        Number(match[2]),
+
+      status:
+        Number(match[3]),
+
+      latency:
+        Number(match[4])
+
+    };
+
+  }
+
+
+  /* --------------------------------------------------
+     CHECK TABLE
+  -------------------------------------------------- */
+
+  function renderChecks(logs, summary) {
+
+    const tbody =
+      document.getElementById("checks-table");
+
+    const parsed =
+      logs
+        .map(parseLog)
+        .filter(Boolean)
+        .slice(-25)
+        .reverse();
+
+
+    document.getElementById("check-count")
+      .textContent =
+        `${parsed.length} recent checks`;
+
+
+    if (!parsed.length) {
+
+      tbody.innerHTML = `
+        <tr>
+          <td colspan="4" class="empty">
+            No request logs available.
+          </td>
+        </tr>
+      `;
+
+      return;
+    }
+
+
+    tbody.innerHTML =
+      parsed
+        .map(item => {
+
+          const ok =
+            item.status === 200;
+
+          return `
+
+            <tr>
+
+              <td>
+                ${formatDate(item.timestamp)}
+              </td>
+
+              <td>
+                #${formatNumber(item.request)}
+              </td>
+
+              <td>
+
+                <span
+                  class="http-status ${ok ? "" : "bad"}"
+                >
+
+                  <span class="tiny-dot"></span>
+
+                  HTTP ${item.status}
+
+                </span>
+
+              </td>
+
+              <td class="latency">
+                ${formatNumber(item.latency)} ms
+              </td>
+
+            </tr>
+
+          `;
+
+        })
+        .join("");
+
+  }
+
+
+  /* --------------------------------------------------
+     REFRESH
+  -------------------------------------------------- */
+
+  async function refreshDashboard() {
+
+    try {
+
+      const [
+        summary,
+        runs,
+        logs
+      ] = await Promise.all([
+        fetchSummary(),
+        fetchRuns(),
+        fetchLogs()
+      ]);
+
+
+      state.runs = runs;
+      state.logs = logs;
+
+
+      renderStatus(summary);
+
+      renderMetrics(summary);
+
+      renderUptime(runs);
+
+      renderChart(runs);
+
+      renderChecks(logs, summary);
+
+
+      document.getElementById("last-updated")
+        .textContent =
+          `Last updated: ${new Date().toLocaleTimeString()}`;
+
+
+    } catch (error) {
+
+      console.error(
+        "Dashboard refresh failed:",
+        error
+      );
+
+
+      document.getElementById("status-title")
+        .textContent =
+          "Unable to load monitoring data";
+
+
+      document.getElementById("status-badge")
+        .textContent =
+          "ERROR";
+
+
+      document.getElementById("status-badge")
+        .classList.add("down");
+
+
+      document.getElementById("status-dot")
+        .classList.add("down");
+
+    }
+
+  }
+
+
+  /* --------------------------------------------------
+     RANGE BUTTONS
+  -------------------------------------------------- */
+
+  document
+    .querySelectorAll(".range-btn")
+    .forEach(button => {
+
+      button.addEventListener("click", () => {
+
+        document
+          .querySelectorAll(".range-btn")
+          .forEach(btn =>
+            btn.classList.remove("active")
+          );
+
+        button.classList.add("active");
+
+        state.range =
+          Number(button.dataset.range);
+
+        renderUptime(state.runs);
+
+        renderChart(state.runs);
+
       });
-      refreshDashboard();
-      setInterval(refreshDashboard, 10_000);
-    </script>
-  </body>
+
+    });
+
+
+  /* --------------------------------------------------
+     INITIALIZE
+  -------------------------------------------------- */
+
+  refreshDashboard();
+
+  setInterval(
+    refreshDashboard,
+    10_000
+  );
+
+</script>
+
+</body>
 </html>
