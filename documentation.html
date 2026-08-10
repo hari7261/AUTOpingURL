@@ -189,7 +189,7 @@
           <ul>
             <li>Target URL: <code>https://hari7261.github.io/INDUS/index.html</code></li>
             <li>Requests per run: <code>10000</code></li>
-            <li>Runs: scheduled 2 times/day + manual run</li>
+            <li>Runs: scheduled every 2 minutes + manual run</li>
           </ul>
         </article>
 
@@ -200,7 +200,7 @@
             It runs by cron and can be started manually from GitHub Actions.
           </p>
           <ul>
-            <li>Cron: <code>0 0,12 * * *</code> (00:00 and 12:00 UTC)</li>
+            <li>Cron: <code>*/2 * * * *</code> (every 2 minutes)</li>
             <li>Manual: Actions tab -> workflow -> <code>Run workflow</code></li>
           </ul>
         </article>

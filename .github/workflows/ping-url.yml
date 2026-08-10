@@ -1,8 +1,8 @@
-name: Ping URL Every 5 Minutes
+name: Ping URL Every 2 Minutes
 
 on:
   schedule:
-    - cron: "*/5 * * * *"
+    - cron: "*/2 * * * *"
   workflow_dispatch:
 
 env:
