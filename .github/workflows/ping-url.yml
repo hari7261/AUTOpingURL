@@ -1,140 +1,193 @@
-# name: Ping URL Twice a Day
+name: Ping URL Every 5 Minutes
 
-# on:
-#   schedule:
-#     - cron: "0 0,12 * * *"
-#   workflow_dispatch:
+on:
+  schedule:
+    - cron: "*/5 * * * *"
+  workflow_dispatch:
 
-# env:
-#   FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
 
-# permissions:
-#   contents: write
+permissions:
+  contents: write
 
-# concurrency:
-#   group: ping-url
-#   cancel-in-progress: false
+concurrency:
+  group: ping-url
+  cancel-in-progress: false
 
-# jobs:
-#   ping:
-#     runs-on: ubuntu-latest
-#     env:
-#       URL: https://hari7261.github.io/INDUS/index.html
-#       REQUEST_COUNT: "10000"
-#       CONCURRENCY: "50"
-#       REQUEST_LOG_LIMIT: "200000"
-#       RUNS_HISTORY_LIMIT: "180"
+jobs:
+  ping:
+    runs-on: ubuntu-latest
 
-#     steps:
-#       - name: Checkout repository
-#         uses: actions/checkout@v4
+    env:
+      URL: "https://server-sarvadrik.onrender.com/"
+      REQUEST_COUNT: "10000"
+      CONCURRENCY: "50"
+      REQUEST_LOG_LIMIT: "200000"
+      RUNS_HISTORY_LIMIT: "180"
 
-#       - name: Ping URL in parallel and build run summary
-#         run: |
-#           set -euo pipefail
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
 
-#           mkdir -p logs
+      - name: Ping URL in parallel and build run summary
+        run: |
+          set -euo pipefail
 
-#           TMP_RESULTS="$(mktemp)"
-#           TMP_SORTED="$(mktemp)"
-#           export TMP_RESULTS TMP_SORTED URL
+          mkdir -p logs
 
-#           seq 1 "$REQUEST_COUNT" | xargs -P "$CONCURRENCY" -I{} bash -c '
-#             i="$1"
-#             ts="$(date -u +"%Y-%m-%dT%H:%M:%SZ")"
-#             result="$(curl -sS -o /dev/null -w "%{http_code} %{time_total}" --connect-timeout 5 --max-time 20 "$URL" || echo "000 0")"
-#             status="${result%% *}"
-#             latency_s="${result##* }"
-#             latency_ms="$(awk -v t="$latency_s" "BEGIN { printf \"%.0f\", t * 1000 }")"
-#             printf "%s|%s|%s|%s\n" "$ts" "$i" "$status" "$latency_ms" >> "$TMP_RESULTS"
-#           ' _ {}
+          TMP_RESULTS="$(mktemp)"
+          TMP_SORTED="$(mktemp)"
+          export TMP_RESULTS TMP_SORTED URL
 
-#           sort -t '|' -k2,2n "$TMP_RESULTS" > "$TMP_SORTED"
+          seq 1 "$REQUEST_COUNT" | xargs -P "$CONCURRENCY" -I{} bash -c '
+            i="$1"
 
-#           while IFS='|' read -r ts index status latency_ms; do
-#             printf "%s - Request #%s - Status: %s - LatencyMs: %s\n" "$ts" "$index" "$status" "$latency_ms"
-#           done < "$TMP_SORTED" >> logs/requests.log
+            ts="$(date -u +"%Y-%m-%dT%H:%M:%SZ")"
 
-#           python3 - <<'PY'
-#           import json
-#           import os
-#           from datetime import datetime, timezone
+            result="$(curl \
+              -sS \
+              -o /dev/null \
+              -w "%{http_code} %{time_total}" \
+              --connect-timeout 5 \
+              --max-time 20 \
+              "$URL" || echo "000 0")"
 
-#           request_count = int(os.environ["REQUEST_COUNT"])
-#           request_log_limit = int(os.environ["REQUEST_LOG_LIMIT"])
-#           runs_history_limit = int(os.environ["RUNS_HISTORY_LIMIT"])
-#           tmp_sorted = os.environ["TMP_SORTED"]
-#           url = os.environ["URL"]
+            status="${result%% *}"
+            latency_s="${result##* }"
 
-#           statuses = {}
-#           latencies = []
+            latency_ms="$(awk -v t="$latency_s" \
+              "BEGIN { printf \"%.0f\", t * 1000 }")"
 
-#           with open(tmp_sorted, "r", encoding="utf-8") as handle:
-#               for raw in handle:
-#                   line = raw.strip()
-#                   if not line:
-#                       continue
-#                   _, _, status, latency_ms = line.split("|")
-#                   statuses[status] = statuses.get(status, 0) + 1
-#                   latencies.append(int(latency_ms))
+            printf "%s|%s|%s|%s\n" \
+              "$ts" "$i" "$status" "$latency_ms" \
+              >> "$TMP_RESULTS"
+          ' _ {}
 
-#           total = len(latencies)
-#           ok_count = statuses.get("200", 0)
-#           fail_count = total - ok_count
-#           success_rate = round((ok_count / total) * 100, 2) if total else 0
+          sort -t '|' -k2,2n "$TMP_RESULTS" > "$TMP_SORTED"
 
-#           run_summary = {
-#               "run_timestamp_utc": datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
-#               "url": url,
-#               "request_count": request_count,
-#               "completed_count": total,
-#               "success_200": ok_count,
-#               "non_200": fail_count,
-#               "success_rate_percent": success_rate,
-#               "avg_latency_ms": round(sum(latencies) / total, 2) if total else 0,
-#               "min_latency_ms": min(latencies) if latencies else 0,
-#               "max_latency_ms": max(latencies) if latencies else 0,
-#               "status_breakdown": statuses,
-#           }
+          while IFS='|' read -r ts index status latency_ms; do
+            printf "%s - Request #%s - Status: %s - LatencyMs: %s\n" \
+              "$ts" "$index" "$status" "$latency_ms"
+          done < "$TMP_SORTED" >> logs/requests.log
 
-#           latest_summary_path = "logs/latest-summary.json"
-#           with open(latest_summary_path, "w", encoding="utf-8") as handle:
-#               json.dump(run_summary, handle, indent=2)
-#               handle.write("\n")
+          python3 - <<'PY'
+          import json
+          import os
+          from datetime import datetime, timezone
 
-#           history_path = "logs/runs.ndjson"
-#           with open(history_path, "a", encoding="utf-8") as handle:
-#               handle.write(json.dumps(run_summary, separators=(",", ":")) + "\n")
+          request_count = int(os.environ["REQUEST_COUNT"])
+          request_log_limit = int(os.environ["REQUEST_LOG_LIMIT"])
+          runs_history_limit = int(os.environ["RUNS_HISTORY_LIMIT"])
+          tmp_sorted = os.environ["TMP_SORTED"]
+          url = os.environ["URL"]
 
-#           def rotate_lines(path: str, limit: int) -> None:
-#               if not os.path.exists(path):
-#                   return
-#               with open(path, "r", encoding="utf-8") as source:
-#                   lines = source.readlines()
-#               if len(lines) <= limit:
-#                   return
-#               with open(path, "w", encoding="utf-8") as dest:
-#                   dest.writelines(lines[-limit:])
+          statuses = {}
+          latencies = []
 
-#           rotate_lines("logs/requests.log", request_log_limit)
-#           rotate_lines(history_path, runs_history_limit)
-#           PY
+          with open(tmp_sorted, "r", encoding="utf-8") as handle:
+              for raw in handle:
+                  line = raw.strip()
 
-#           rm -f "$TMP_RESULTS" "$TMP_SORTED"
+                  if not line:
+                      continue
 
-#       - name: Commit and push logs
-#         run: |
-#           set -euo pipefail
+                  _, _, status, latency_ms = line.split("|")
 
-#           git config user.name "github-actions[bot]"
-#           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+                  statuses[status] = statuses.get(status, 0) + 1
+                  latencies.append(int(latency_ms))
 
-#           git add logs/requests.log logs/latest-summary.json logs/runs.ndjson
+          total = len(latencies)
 
-#           if git diff --cached --quiet; then
-#             echo "No log changes to commit."
-#             exit 0
-#           fi
+          ok_count = statuses.get("200", 0)
+          fail_count = total - ok_count
 
-#           git commit -m "Log URL ping summary at $(date -u +'%Y-%m-%dT%H:%M:%SZ')"
-#           git push
+          success_rate = (
+              round((ok_count / total) * 100, 2)
+              if total
+              else 0
+          )
+
+          run_summary = {
+              "run_timestamp_utc": datetime.now(timezone.utc)
+                  .strftime("%Y-%m-%dT%H:%M:%SZ"),
+              "url": url,
+              "request_count": request_count,
+              "completed_count": total,
+              "success_200": ok_count,
+              "non_200": fail_count,
+              "success_rate_percent": success_rate,
+              "avg_latency_ms": (
+                  round(sum(latencies) / total, 2)
+                  if total
+                  else 0
+              ),
+              "min_latency_ms": min(latencies) if latencies else 0,
+              "max_latency_ms": max(latencies) if latencies else 0,
+              "status_breakdown": statuses,
+          }
+
+          latest_summary_path = "logs/latest-summary.json"
+
+          with open(latest_summary_path, "w", encoding="utf-8") as handle:
+              json.dump(run_summary, handle, indent=2)
+              handle.write("\n")
+
+          history_path = "logs/runs.ndjson"
+
+          with open(history_path, "a", encoding="utf-8") as handle:
+              handle.write(
+                  json.dumps(
+                      run_summary,
+                      separators=(",", ":")
+                  ) + "\n"
+              )
+
+          def rotate_lines(path: str, limit: int) -> None:
+              if not os.path.exists(path):
+                  return
+
+              with open(path, "r", encoding="utf-8") as source:
+                  lines = source.readlines()
+
+              if len(lines) <= limit:
+                  return
+
+              with open(path, "w", encoding="utf-8") as dest:
+                  dest.writelines(lines[-limit:])
+
+          rotate_lines(
+              "logs/requests.log",
+              request_log_limit
+          )
+
+          rotate_lines(
+              history_path,
+              runs_history_limit
+          )
+          PY
+
+          rm -f "$TMP_RESULTS" "$TMP_SORTED"
+
+      - name: Commit and push logs
+        run: |
+          set -euo pipefail
+
+          git config user.name "github-actions[bot]"
+          git config user.email \
+            "41898282+github-actions[bot]@users.noreply.github.com"
+
+          git add \
+            logs/requests.log \
+            logs/latest-summary.json \
+            logs/runs.ndjson
+
+          if git diff --cached --quiet; then
+            echo "No log changes to commit."
+            exit 0
+          fi
+
+          git commit \
+            -m "Log URL ping summary at $(date -u +'%Y-%m-%dT%H:%M:%SZ')"
+
+          git push
