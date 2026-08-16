@@ -1,14 +1,14 @@
 {
-  "run_timestamp_utc": "2026-08-16T03:32:09Z",
+  "run_timestamp_utc": "2026-08-16T04:17:59Z",
   "url": "https://server-sarvadrik.onrender.com/",
   "request_count": 500,
   "completed_count": 500,
   "success_200": 500,
   "non_200": 0,
   "success_rate_percent": 100.0,
-  "avg_latency_ms": 600.79,
-  "min_latency_ms": 86,
-  "max_latency_ms": 10089,
+  "avg_latency_ms": 588.33,
+  "min_latency_ms": 96,
+  "max_latency_ms": 10139,
   "status_breakdown": {
     "200": 500
   }
